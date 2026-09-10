@@ -225,3 +225,23 @@ judging 100 cases per system with gemini-3.5-flash
   "error": {
     "code": 429,
     "message": "You exceeded your current quot
+  error on hulu_support-2637773: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-450329: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2875720: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2689187: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2778145: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
