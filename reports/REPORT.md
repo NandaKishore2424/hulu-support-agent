@@ -88,11 +88,137 @@ against human ratings.
 
 ## 3. Results
 
-_To be completed once the golden labels are in._
+### Reply quality, and why this table stands on its own
+
+Reply quality does not depend on the intent labels at all: the judge scores a
+draft against retrieved history, not against a gold class. So this table is
+complete and final even where the classification numbers are not.
+
+Judged by `gemini-3.5-flash-lite` on a shared subset of random-slice cases, blind
+to which system wrote each reply. Ranges are bootstrap 95% half-widths.
+
+| system | grounded | actionable | safe | voice | mean | postable | overlap with real reply |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| majority template | 2.56 ±0.35 | 3.80 ±0.21 | 4.92 ±0.10 | 3.34 ±0.28 | 3.65 | 90.0% | 0.179 |
+| keyword + copy nearest | 3.20 ±0.40 | 3.24 ±0.31 | 4.72 ±0.22 | 4.36 ±0.23 | 3.88 | 28.0% | 0.223 |
+| **agent** | **3.90 ±0.31** | 3.66 ±0.32 | **4.98 ±0.03** | **4.41 ±0.20** | **4.24** | 83.5% | 0.210 |
+
+Four things to take from it, including two that do not flatter the agent.
+
+**Retrieval works, and groundedness is where it shows.** The agent scores 3.90 on
+groundedness against 3.20 for a system that copies a real Hulu reply verbatim and
+2.56 for a fixed template. Those intervals do not overlap, so this is a real
+difference rather than noise. This is the one claim in the report I would defend
+without qualification.
+
+**Safety is effectively solved on this metric, at 4.98 with an interval of
+±0.03.** Given that the stated objective puts safety above everything else, that
+matters. It is also the number I trust least as a predictor of production
+behaviour, because the judge is checking for promises in the text and cannot know
+whether a troubleshooting step is actually correct.
+
+**The agent is not measurably more actionable than a hand-written generic
+template.** 3.66 ±0.32 against 3.80 ±0.21. The template asks "what device are you
+using?", which is a genuinely useful question on almost any support message. A
+reader who only saw the mean quality column would conclude the agent is
+comprehensively better; on the dimension that decides whether the customer's
+problem moves forward, it is not distinguishable from one sentence someone wrote
+once.
+
+**Copying real human replies produces mostly unpostable text: 28% postable.** The
+copy baseline has the second-best voice score, which makes sense because it *is*
+Hulu's voice, and it still fails, because a reply written for a different customer
+carries their name and a link resolved for their problem. It is a useful reminder
+that "sounds right" and "can be sent" are different properties.
+
+**Overlap with Hulu's real reply ranks the systems wrongly**, putting the copy
+baseline first. That is the predicted failure of the metric and the reason it is
+reported here only to be discounted. See section 5.
+
+### Classification and triage
+
+Incomplete. Both depend on the hand-labelled golden set, and on the free-tier
+daily token ceiling described in section 5, which stopped the agent at 163 of 200
+golden items. `scripts/06_metrics.py` prints these tables in full once the labels
+are in place.
 
 ## 4. Failure analysis
 
-_To be completed from the labelled results._
+Rates are over 163 agent replies, measured mechanically by
+`scripts/10_failure_scan.py`. None of these needed the gold labels, which is why
+they are the most solid part of the evaluation.
+
+### 1. Leaked placeholder tokens, 22.3% of replies
+
+The agent writes the literal string `<URL>` into replies that would post broken.
+
+> customer: @user episodes 2 and 3 of The Good Doctor aren't available????
+> reply: Sorry to hear that! If you haven't already, you can catch the most recent episode here: `<URL>` Enjoy!
+
+**Hypothesis: I caused this.** My own preprocessing replaced every link with
+`<URL>`, so every retrieved exemplar contains it, and the model correctly infers
+that Hulu replies contain that token. It is imitating the data faithfully. This is
+the clearest case in the project of an evaluation artefact becoming a product
+defect, and it is the single largest contributor to the 16.5% of agent replies
+that are unpostable.
+
+### 2. Inconsistent addressing, 50% of replies missing the @user prefix
+
+Half the replies open without addressing anyone, which on Twitter means the reply
+is not directed at the customer.
+
+**Hypothesis:** normalisation stripped real handles into `@user`, so exemplars are
+split between those that open with it and those where it fell mid-sentence. The
+model has no consistent pattern to copy. Unlike the placeholder leak this one is
+fully repairable in post-processing, since the correct handle is known at send
+time.
+
+### 3. Empathy opener on messages with nothing to apologise for, 31.1%
+
+> customer: @user hi where is season 3 of Fargo I need it
+> reply: Oh no! We don't have Season 3 of Fargo right now, but we'll pass your request along.
+
+**Hypothesis:** the overwhelming majority of exemplars are complaints, so the
+acknowledgement is learned as an unconditional opener rather than a response to
+something going wrong. It is a small tonal error but it is the kind that makes a
+support account sound automated, which is the specific impression the brand voice
+work was meant to avoid.
+
+### 4. Confident answers with no supporting precedent, 15 replies auto-handled
+
+The agent reports which past cases it used. In 15 cases it reported none and still
+answered, with high confidence.
+
+> customer: Glad I pay for @user and can't use it while I am overseas. Oh well, lost a customer!
+> intent=content_availability, confidence=0.92
+> reply: Sorry to hear that! Hulu is only available in the US. Try accessing it from a US-based connection or device.
+
+The answer happens to be correct, which is what makes it the most dangerous
+failure mode here: the model is drawing on world knowledge about Hulu rather than
+on this brand's retrieved history, and nothing in the current design distinguishes
+"grounded and right" from "ungrounded and right" from "ungrounded and wrong".
+
+**This is a design gap, not a model error.** An empty `grounded_in` is a signal
+the policy layer already receives and ignores. It should escalate, and does not.
+
+### 5. My own escalation policy conflates two different billing cases
+
+Policy overrode the model 18 times, 14 of them on `plans_billing`. Most were
+correct. This one was not:
+
+> customer: I'm definitely making the switch. How much is Hulu per month?
+> policy: escalate, reason account_or_payment_specific
+
+That is a prospective customer asking a public pricing question, and the agent had
+already drafted a good reply with a link to the plans page. My taxonomy puts
+general pricing questions and account-specific payment disputes in one intent, and
+my policy escalates the whole intent.
+
+**I have not fixed it, deliberately.** Splitting the intent now would invalidate
+the hand-labelled golden set, which was labelled against the current taxonomy.
+Changing the label space after seeing which classes cause errors is how evaluation
+sets get quietly fitted to the system. The fix belongs in the next iteration, with
+relabelling, and it is item 4 in section 6.
 
 ## 5. What is misleading about my headline number
 
@@ -141,6 +267,19 @@ relative to genuinely novel problems.
 playback and app problems, which is why macro F1 is reported next to accuracy.
 Read the macro figure when comparing systems and the per-class table when asking
 whether a specific intent works.
+
+**The agent was scored on 163 of 200 golden items, not all of them.** Groq's free
+tier enforces a ceiling of 200,000 tokens per day that appears in no response
+header: the rate-limit headers report a healthy per-minute token bucket and 993
+remaining requests while the daily budget is finished, and the real limit surfaces
+only inside the body of a 429. One agent call costs roughly 2,400 tokens, so the
+allowance is about 83 calls a day, and it ran out with 37 golden items and the
+retrieval ablation unmeasured. Those items are not a random subset of the golden
+set, they are whatever remained in file order, so the missing 37 could be
+systematically different from the 163 scored. The ablation gap is worse: without
+it, the claim that retrieval is what drives the groundedness advantage rests on
+comparing against a copy baseline rather than against the same model with
+retrieval removed.
 
 **One run, no variance estimate.** Results come from a single pass at temperature
 zero. gpt-oss reasons before answering and is not perfectly deterministic, so

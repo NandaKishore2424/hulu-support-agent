@@ -19,6 +19,16 @@
       "missed_rate": 1.0,
       "over_rate": 0.0,
       "automation_rate": 1.0
+    },
+    "quality": {
+      "n": 100,
+      "grounded": 2.56,
+      "actionable": 3.8,
+      "safe": 4.92,
+      "voice": 3.34,
+      "mean_quality": 3.655,
+      "usable_rate": 0.9,
+      "token_f1_vs_real_reply": 0.17897518199110515
     }
   },
   "keyword_knn": {
@@ -43,36 +53,46 @@
       "automation_rate": 0.825
     },
     "quality": {
-      "n": 44,
-      "grounded": 3.5454545454545454,
-      "actionable": 3.227272727272727,
-      "safe": 4.7272727272727275,
-      "voice": 4.454545454545454,
-      "mean_quality": 3.9886363636363638,
-      "usable_rate": 0.36363636363636365,
-      "token_f1_vs_real_reply": 0.23307695054740094
+      "n": 100,
+      "grounded": 3.2,
+      "actionable": 3.24,
+      "safe": 4.72,
+      "voice": 4.36,
+      "mean_quality": 3.88,
+      "usable_rate": 0.28,
+      "token_f1_vs_real_reply": 0.22277889599358663
     }
   },
   "agent": {
     "intent": {
-      "n": 87,
-      "accuracy": 0.41379310344827586,
+      "n": 91,
+      "accuracy": 0.42857142857142855,
       "ci": [
-        0.3103448275862069,
-        0.5172413793103449
+        0.31868131868131866,
+        0.5384615384615384
       ],
-      "macro_f1": 0.32553261358524516
+      "macro_f1": 0.336642623132878
     },
     "triage": {
-      "n": 87,
-      "precision": 0.5333333333333333,
-      "recall": 0.5333333333333333,
-      "f1": 0.5333333333333333,
+      "n": 91,
+      "precision": 0.5882352941176471,
+      "recall": 0.5882352941176471,
+      "f1": 0.5882352941176471,
       "missed_escalations": 7,
       "over_escalations": 7,
-      "missed_rate": 0.4666666666666667,
-      "over_rate": 0.09722222222222222,
-      "automation_rate": 0.8275862068965517
+      "missed_rate": 0.4117647058823529,
+      "over_rate": 0.0945945945945946,
+      "automation_rate": 0.8131868131868132
+    },
+    "quality": {
+      "n": 91,
+      "grounded": 3.901098901098901,
+      "actionable": 3.659340659340659,
+      "safe": 4.978021978021978,
+      "voice": 4.406593406593407,
+      "mean_quality": 4.236263736263736,
+      "usable_rate": 0.8351648351648352,
+      "token_f1_vs_real_reply": 0.20988184071180108
     }
   }
 }

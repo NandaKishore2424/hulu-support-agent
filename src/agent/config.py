@@ -72,6 +72,16 @@ EMERGENCY_MODEL = os.getenv("EMERGENCY_MODEL", "gemini-3.1-flash-lite")
 # prompts vary in size by a factor of two.
 GROQ_TOKENS_PER_MINUTE = int(os.getenv("GROQ_TOKENS_PER_MINUTE", "7200"))
 GEMINI_TOKENS_PER_MINUTE = int(os.getenv("GEMINI_TOKENS_PER_MINUTE", "200000"))
+
+# The two providers bind on different axes and both have to be respected.
+# Groq's ceiling is tokens per minute; its request allowance is generous.
+# Gemini is the opposite: tokens per minute are effectively unlimited on the free
+# tier but requests per minute are tight, and exceeding them returns a 429 whose
+# quotaId ends PerMinutePerProjectPerModel. The judge was running at 20 to 26
+# requests a minute against that limit and burning its retries on self-inflicted
+# 429s, which looked like exhausted daily quota and was not.
+GROQ_REQUESTS_PER_MINUTE = int(os.getenv("GROQ_REQUESTS_PER_MINUTE", "25"))
+GEMINI_REQUESTS_PER_MINUTE = int(os.getenv("GEMINI_REQUESTS_PER_MINUTE", "12"))
 MIN_SECONDS_BETWEEN_CALLS = float(os.getenv("MIN_SECONDS_BETWEEN_CALLS", "1.0"))
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", "5"))
 DEFAULT_MAX_TOKENS = int(os.getenv("DEFAULT_MAX_TOKENS", "900"))

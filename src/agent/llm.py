@@ -26,6 +26,19 @@ import httpx
 from . import config as C
 
 
+class QuotaExhausted(RuntimeError):
+    """A per-day allowance is gone, so retrying inside this run cannot help.
+
+    Groq enforces a tokens-per-day ceiling that appears in no response header:
+    x-ratelimit-* reports only the per-minute token bucket and the request count,
+    both of which read healthy while the daily budget is finished. The limit
+    surfaces only in the body of a 429. Retrying it burns the retry ladder and
+    then dies with a truncated error, which is exactly how three runs in this
+    project failed before the cause was found. Raising a distinct error makes the
+    wall legible and stops the run instead of hiding it.
+    """
+
+
 class CacheMiss(RuntimeError):
     """Raised in offline mode when a prompt has never been run before."""
 
@@ -92,19 +105,40 @@ def _budget(provider: str) -> int:
     return C.GROQ_TOKENS_PER_MINUTE if provider == "groq" else C.GEMINI_TOKENS_PER_MINUTE
 
 
+def _request_cap(provider: str) -> int:
+    return (C.GROQ_REQUESTS_PER_MINUTE if provider == "groq"
+            else C.GEMINI_REQUESTS_PER_MINUTE)
+
+
 def _throttle(provider: str = "groq", tokens: int = 0) -> None:
     """Hold the caller until this call fits inside the provider's rolling budget."""
     global _last_call_at
     window = _recent.setdefault(provider, [])
     budget = _budget(provider)
+    cap = _request_cap(provider)
     while True:
         now = time.time()
         window[:] = [(t, n) for t, n in window if now - t < 60.0]
         used = sum(n for _, n in window)
-        if used + tokens <= budget or not window:
+        over_tokens = used + tokens > budget
+        over_requests = len(window) >= cap
+        if not window or (not over_tokens and not over_requests):
             break
-        # Wait until the oldest call falls out of the 60s window.
-        time.sleep(min(61.0 - (now - window[0][0]), 30.0))
+        # Sleep only until enough of the window has aged out to admit this call,
+        # rather than always waiting for the oldest entry. Waiting on the oldest
+        # entry regardless leaves the budget idle for most of each minute.
+        need_tokens = used + tokens - budget
+        release_at = window[0][0]
+        if over_tokens:
+            freed = 0
+            for ts, n in window:
+                freed += n
+                release_at = ts
+                if freed >= need_tokens:
+                    break
+        if over_requests:
+            release_at = max(release_at, window[len(window) - cap][0])
+        time.sleep(min(max(60.5 - (now - release_at), 0.05), 30.0))
     wait = C.MIN_SECONDS_BETWEEN_CALLS - (time.time() - _last_call_at)
     if wait > 0:
         time.sleep(wait)
@@ -118,6 +152,25 @@ def _cache_path(key: dict) -> Path:
     return C.CACHE_DIR / f"{digest}.json"
 
 
+_DAILY_MARKERS = ("tokens per day", "TPD", "PerDayPerProject", "requests per day", "RPD")
+
+
+def _is_daily_cap(body: str) -> bool:
+    return any(m in body for m in _DAILY_MARKERS)
+
+
+def _daily_cap_message(body: str) -> str:
+    """Pull the provider's own sentence out of the 429 so the operator sees it."""
+    try:
+        msg = json.loads(body).get("error", {}).get("message", "")
+    except (ValueError, AttributeError):
+        msg = ""
+    return ("daily provider allowance exhausted, so this run cannot continue: "
+            + (msg[:400] if msg else body[:300])
+            + "\n\nProgress already written to disk is kept and cached, so re-running "
+              "after the reset resumes rather than repeats.")
+
+
 def _post_with_retry(client: httpx.Client, url: str, **kw) -> httpx.Response:
     """Retry on 429 and 5xx. Honours Retry-After when the server sends one."""
     last = None
@@ -126,6 +179,8 @@ def _post_with_retry(client: httpx.Client, url: str, **kw) -> httpx.Response:
         if resp.status_code < 400:
             return resp
         last = f"{resp.status_code} {resp.text[:300]}"
+        if resp.status_code == 429 and _is_daily_cap(resp.text):
+            raise QuotaExhausted(_daily_cap_message(resp.text))
         retryable = resp.status_code == 429 or resp.status_code >= 500
         if not retryable:
             raise RuntimeError(f"non-retryable LLM error: {last}")

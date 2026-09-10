@@ -26,7 +26,7 @@ from agent.baselines import (KeywordKnnBaseline, MajorityBaseline,    # noqa: E4
                              NoRetrievalAblation)
 from agent.data import load_cases                                     # noqa: E402
 from agent.judge import judge_reply                                   # noqa: E402
-from agent.llm import USAGE, CacheMiss                                # noqa: E402
+from agent.llm import USAGE, CacheMiss, QuotaExhausted               # noqa: E402
 from agent.retrieve import ExemplarIndex                              # noqa: E402
 
 PRED_DIR = C.REPORT_DIR / "predictions"
@@ -40,7 +40,8 @@ def load_golden(brand: str) -> list[dict]:
     return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines()]
 
 
-def predict(brand: str, live: bool, only: list[str] | None) -> None:
+def predict(brand: str, live: bool, only: list[str] | None,
+            limit: int | None = None, ablation_n: int = 40) -> None:
     items = load_golden(brand)
     hist = load_cases(C.PROC_DIR / f"history_{brand}.jsonl")
     index = ExemplarIndex(hist)
@@ -57,7 +58,7 @@ def predict(brand: str, live: bool, only: list[str] | None) -> None:
         "majority":     (items, lambda c: majority.run(c)),
         "keyword_knn":  (items, lambda c: knn.run(c)),
         "agent":        (items, lambda c: A.run(c, index, live=live)),
-        "no_retrieval": ([i for i in items if i["slice"] == "random"],
+        "no_retrieval": ([i for i in items if i["slice"] == "random"][:ablation_n],
                          lambda c: ablation.run(c, live=live)),
     }
     for name, (subset, fn) in plans.items():
@@ -68,6 +69,8 @@ def predict(brand: str, live: bool, only: list[str] | None) -> None:
         if out_path.exists():
             done = {json.loads(l)["case_id"] for l in out_path.read_text().splitlines()}
         todo = [c for c in subset if c["case_id"] not in done]
+        if limit:
+            todo = todo[:limit]
         print(f"\n[{name}] {len(subset)} items, {len(done)} already saved, {len(todo)} to run")
         t0 = time.time()
         with out_path.open("a", encoding="utf-8") as fh:
@@ -77,6 +80,9 @@ def predict(brand: str, live: bool, only: list[str] | None) -> None:
                 except CacheMiss:
                     print(f"  stop: cache miss at item {n} and --live not set")
                     break
+                except QuotaExhausted as exc:
+                    print(f"\n  STOP after {n - 1} items: {exc}")
+                    return
                 except Exception as exc:                       # noqa: BLE001
                     print(f"  error on {case['case_id']}: {str(exc)[:160]}")
                     continue
@@ -89,7 +95,8 @@ def predict(brand: str, live: bool, only: list[str] | None) -> None:
                     print(f"  {n}/{len(todo)}  {rate:.1f}/min  usage={USAGE.summary()}")
 
 
-def judge(brand: str, live: bool, judge_n: int, only: list[str] | None) -> None:
+def judge(brand: str, live: bool, judge_n: int, only: list[str] | None,
+          limit: int | None = None) -> None:
     hist = load_cases(C.PROC_DIR / f"history_{brand}.jsonl")
     index = ExemplarIndex(hist)
     items = {c["case_id"]: c for c in load_golden(brand)}
@@ -115,6 +122,8 @@ def judge(brand: str, live: bool, judge_n: int, only: list[str] | None) -> None:
         if out_path.exists():
             done = {json.loads(l)["case_id"] for l in out_path.read_text().splitlines()}
         todo = [cid for cid in subset if cid in preds and cid not in done]
+        if limit:
+            todo = todo[:limit]
         print(f"\n[{name}] {len(preds)} in subset, {len(done)} judged, {len(todo)} to go")
         t0 = time.time()
         with out_path.open("a", encoding="utf-8") as fh:
@@ -127,6 +136,9 @@ def judge(brand: str, live: bool, judge_n: int, only: list[str] | None) -> None:
                 except CacheMiss:
                     print(f"  stop: cache miss at item {n} and --live not set")
                     break
+                except QuotaExhausted as exc:
+                    print(f"\n  STOP after {n - 1} items: {exc}")
+                    return
                 except Exception as exc:                        # noqa: BLE001
                     print(f"  error on {cid}: {str(exc)[:160]}")
                     continue
@@ -144,14 +156,21 @@ def main() -> None:
     ap.add_argument("--live", action="store_true",
                     help="allow real API calls; without it only cached prompts resolve")
     ap.add_argument("--judge-n", type=int, default=100)
+    ap.add_argument("--ablation-n", type=int, default=40,
+                    help="random-slice items for the no-retrieval ablation; it only "
+                         "has to show whether retrieval helps, and it is the first "
+                         "thing to shrink when a daily token budget binds")
+    ap.add_argument("--limit", type=int, default=None,
+                    help="process at most this many pending items per system, then "
+                         "exit cleanly; lets a long run proceed in bounded chunks")
     ap.add_argument("--only", nargs="*", default=None,
                     help="restrict to named systems, e.g. --only agent")
     args = ap.parse_args()
 
     if args.stage == "predict":
-        predict(args.brand, args.live, args.only)
+        predict(args.brand, args.live, args.only, args.limit, args.ablation_n)
     else:
-        judge(args.brand, args.live, args.judge_n, args.only)
+        judge(args.brand, args.live, args.judge_n, args.only, args.limit)
     print("\nfinal usage:", json.dumps(USAGE.summary(), indent=2))
 
 
