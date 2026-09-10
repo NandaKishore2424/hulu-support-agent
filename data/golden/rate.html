@@ -31,7 +31,7 @@ button:hover{border-color:var(--acc)}
 </style></head><body>
 <div id="main">
   <div id="bar"><div style="width:0"></div></div>
-  <div class="meta"><span id="pos"></span><span id="done"></span>
+  <div class="meta"><span id="pos"></span><span id="done"></span><span id="saved" style="color:#6ee7a8"></span>
     <span id="nostore" hidden style="color:var(--warn)">no browser storage &mdash; auto-exporting every 15 ratings</span></div>
   <h4>customer wrote</h4>
   <div id="msg" class="box"></div>
@@ -68,7 +68,7 @@ let i = 0, d = 0, sinceBackup = 0;
 function cur(){ return ITEMS[i]; }
 function rec(){ const k = cur().rating_id; return ratings[k] || (ratings[k] = {rating_id:k, case_id:cur().case_id, system:cur().system}); }
 function complete(r){ return DIMS.every(x => r && r[x] !== undefined); }
-function save(){ store(KEY, JSON.stringify(ratings));
+function save(){ persist(ITEMS.map(c=>({...(ratings[c.rating_id]||{rating_id:c.rating_id,case_id:c.case_id,system:c.system})})), 'reply_ratings.jsonl'); store(KEY, JSON.stringify(ratings));
   if(!STORAGE_OK && ++sinceBackup >= 15){ sinceBackup = 0; exportJSON(true); } }
 
 function render(){
@@ -104,7 +104,27 @@ document.addEventListener("keydown", e=>{
   if(dim==="usable" && /^[01]$/.test(k)){ setScore(dim, +k); return; }
   if(dim!=="usable" && /^[1-5]$/.test(k)){ setScore(dim, +k); }
 });
+
+// Persist to disk through the server after every change. localStorage is kept as
+// a second copy, but the file on disk is the one that matters and it is always
+// current, so an hour of work no longer depends on remembering to export.
+let saveTimer = null, lastSaved = 0;
+function persist(rows, filename){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    fetch("/save", {method:"POST", headers:{"Content-Type":"application/json"},
+                    body: JSON.stringify({file: filename, rows: rows})})
+      .then(r=>r.json())
+      .then(d=>{ lastSaved = d.complete;
+                 const el=document.getElementById("saved");
+                 if(el) el.textContent = `${d.complete} saved to disk`; })
+      .catch(()=>{ const el=document.getElementById("saved");
+                   if(el) el.textContent = "NOT SAVING - is label_server.py running?"; });
+  }, 400);
+}
+
 function exportJSON(auto){
+  if(!auto && lastSaved === 0 && !confirm('Nothing is labelled yet. Export an empty file anyway?')) return;
   const rows = ITEMS.map(c=>({...(ratings[c.rating_id]||{rating_id:c.rating_id,case_id:c.case_id,system:c.system})}));
   const blob = new Blob([rows.map(r=>JSON.stringify(r)).join("\n")], {type:"application/x-ndjson"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);

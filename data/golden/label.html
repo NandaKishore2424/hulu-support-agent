@@ -35,7 +35,7 @@ button:hover{border-color:var(--acc)}
   <div id="bar"><div style="width:0"></div></div>
   <div class="meta">
     <span id="pos"></span><span id="cid"></span><span id="date"></span>
-    <span id="done"></span><span id="peeked"></span>
+    <span id="done"></span><span id="saved" style="color:#6ee7a8"></span><span id="peeked"></span>
   </div>
   <div id="msg"></div>
   <div id="reply" hidden></div>
@@ -77,7 +77,7 @@ let i = 0, stage = 1, sinceBackup = 0;
 
 function cur(){ return ITEMS[i]; }
 function rec(){ const k = cur().case_id; return labels[k] || (labels[k] = {case_id:k, idx:cur().idx}); }
-function save(){
+function save(){ persist(ITEMS.map(c=>({...(labels[c.case_id]||{case_id:c.case_id,idx:c.idx})})), 'golden_labels.jsonl');
   store(KEY, JSON.stringify(labels));
   // Without storage the only safe place for the work is a file on disk, so
   // auto-export every 20 labels rather than trusting the tab to stay open.
@@ -144,7 +144,27 @@ document.addEventListener("keydown", e=>{
     if(TAX[n]) pickIntent(TAX[n].name);
   }
 });
+
+// Persist to disk through the server after every change. localStorage is kept as
+// a second copy, but the file on disk is the one that matters and it is always
+// current, so an hour of work no longer depends on remembering to export.
+let saveTimer = null, lastSaved = 0;
+function persist(rows, filename){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    fetch("/save", {method:"POST", headers:{"Content-Type":"application/json"},
+                    body: JSON.stringify({file: filename, rows: rows})})
+      .then(r=>r.json())
+      .then(d=>{ lastSaved = d.complete;
+                 const el=document.getElementById("saved");
+                 if(el) el.textContent = `${d.complete} saved to disk`; })
+      .catch(()=>{ const el=document.getElementById("saved");
+                   if(el) el.textContent = "NOT SAVING - is label_server.py running?"; });
+  }, 400);
+}
+
 function exportJSON(auto){
+  if(!auto && lastSaved === 0 && !confirm('Nothing is labelled yet. Export an empty file anyway?')) return;
   const rows = ITEMS.map(c=>({...(labels[c.case_id]||{case_id:c.case_id,idx:c.idx})}));
   const blob = new Blob([rows.map(r=>JSON.stringify(r)).join("\n")], {type:"application/x-ndjson"});
   const a = document.createElement("a");

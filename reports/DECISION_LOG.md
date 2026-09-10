@@ -172,3 +172,20 @@ and, more importantly, independent of which copy scores better, so it cannot be
 used to quietly select favourable results. `06_metrics.py` now refuses to build
 tables from a file containing duplicates rather than silently using whichever copy
 was written last.
+
+### 24. Labels are written to disk as they are entered, not held in the browser
+The first labelling page kept an hour of work in `localStorage` until the user
+pressed export. That put the most expensive artefact in the project behind one
+button and a storage API that silently returns nothing in a private window, after
+a site-data clear, or on a `file://` origin. It produced a 200-row export
+containing no labels and no error, which is the worst possible failure: it looks
+like a finished file.
+
+`scripts/label_server.py` now serves the pages and accepts a POST after every
+keystroke, writing straight to `data/golden/`. The file on disk is always current
+and export is optional. The export button also refuses to write an empty file
+without confirmation, and the page shows a live count of what is actually saved
+rather than what the browser believes.
+
+Verified end to end by driving the page in a browser and confirming the row
+appeared on disk, rather than assuming the wiring worked.

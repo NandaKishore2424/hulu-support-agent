@@ -38,11 +38,11 @@ agreement:
 
 label:
 	$(VENV)/python scripts/04_make_labeller.py --brand $(BRAND)
-	./scripts/label.sh
+	$(VENV)/python scripts/label_server.py
 
 rate:
 	$(VENV)/python scripts/07_make_rater.py
-	PAGE=rate.html ./scripts/label.sh
+	$(VENV)/python scripts/label_server.py
 
 test:
 	$(VENV)/python -m pytest tests -q

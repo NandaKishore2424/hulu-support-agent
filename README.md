@@ -36,7 +36,7 @@ an hour on the free tiers, which are token-limited rather than request-limited.
 
 ```bash
 make data      # download twcs.csv, rank brands, build case splits, sample the golden set
-make label     # serve the labelling UI, then export golden_labels.jsonl
+make label     # serve the labelling UI; labels are written to disk as they are entered
 make predict   # run all four systems over the golden set
 make judge     # score the replies with the judge
 make rate      # serve the reply-rating UI, then export reply_ratings.jsonl
