@@ -94,9 +94,15 @@ def main() -> None:
     print("=" * 96)
 
     for name in SYSTEM_ORDER:
-        preds = {r["case_id"]: r for r in read_jsonl(PRED_DIR / f"{name}.jsonl")}
+        rows = read_jsonl(PRED_DIR / f"{name}.jsonl")
+        preds = {r["case_id"]: r for r in rows}
         if not preds:
             continue
+        if len(rows) != len(preds):
+            sys.exit(f"{name}.jsonl has {len(rows) - len(preds)} duplicate case_ids. "
+                     "Run scripts/12_dedupe_predictions.py --report --apply first, "
+                     "so the tables are not silently built from whichever copy "
+                     "happened to be written last.")
         for slice_name, gset in (("random", rnd), ("all", gold)):
             ids = [cid for cid in gset if cid in preds]
             if not ids:

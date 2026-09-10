@@ -336,10 +336,29 @@ different model. The direction of the effect is so large, +2.34 on groundedness
 with 27 wins and no losses, that I would be surprised if it reversed on the
 deployed model, but the magnitude should not be transferred.
 
-**One run, no variance estimate.** Results come from a single pass at temperature
-zero. gpt-oss reasons before answering and is not perfectly deterministic, so
-some of the reported difference between systems is run-to-run variation that I
-have not measured.
+**Temperature zero is not deterministic here, and I can now put a number on it.**
+Two prediction runs briefly overlapped and regenerated 31 golden cases a second
+time, which by accident produced 31 independent repeat samples of the same prompt.
+
+| repeated at temperature 0 | identical across runs |
+|---|---:|
+| escalation decision | 100% |
+| intent label | 94% |
+| confidence score | 58% |
+| reply wording | 29% |
+
+Three things follow. An intent accuracy gap smaller than about six points between
+two systems could be run-to-run noise alone, on top of the sampling uncertainty
+the bootstrap intervals already show, so small differences in the classification
+tables should not be read as real. Reply-quality scores rest on wording that
+changes on 71% of reruns, so the judged means are estimates of a distribution
+rather than measurements of a fixed artefact. And the escalation decision did not
+move once, which is the strongest evidence in the report for putting that decision
+in policy code rather than in the prompt: the deterministic layer absorbed the
+model's variance entirely.
+
+This estimate is opportunistic rather than designed. 31 cases is small, they are
+not a random subset, and a proper study would rerun the whole set several times.
 
 **The judge's own validation is small.** Agreement is measured on roughly 40
 rated replies from a single human. That is enough to detect a badly broken judge

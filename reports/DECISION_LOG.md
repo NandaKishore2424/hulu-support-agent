@@ -154,3 +154,21 @@ return an empty completion, which Groq rejects as a malformed-JSON 400 rather
 than anything mentioning reasoning or length. The failure looked nothing like its
 cause, which is the second time in this project a provider reported a limit as a
 different kind of error.
+
+### 23. Duplicate predictions were kept long enough to learn from, then collapsed by rule
+Two runs overlapped and regenerated 31 golden cases, because each computed its
+"already done" set before the other had written. Rather than delete the duplicates
+immediately, they were measured first: they are the only independent repeat
+samples in the project, and they show that temperature zero is not deterministic
+here. Intent labels agree 94% of the time across reruns, replies only 29%, and the
+escalation decision 100%.
+
+That last figure is the strongest argument in the project for deciding escalation
+in code. The model's output moved on nearly three quarters of reruns and the
+handling decision did not move once.
+
+Deduplication keeps the first occurrence in file order. That rule is deterministic
+and, more importantly, independent of which copy scores better, so it cannot be
+used to quietly select favourable results. `06_metrics.py` now refuses to build
+tables from a file containing duplicates rather than silently using whichever copy
+was written last.
