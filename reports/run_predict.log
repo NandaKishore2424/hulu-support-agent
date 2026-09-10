@@ -1,3 +1,4 @@
 golden=200  exemplar pool=9,996
 
 [agent] 200 items, 142 already saved, 58 to run
+  10/66  0.8/min  usage={'cache_hits': 0, 'groq_calls': 9, 'gemini_calls': 1, 'prompt_tokens': 17752, 'completion_tokens': 4850, 'errors': 3, 'served_by': {'groq/openai/gpt-oss-120b': 8, 'groq/openai/gpt-oss-20b': 1, 'gemini/gemini-3.1-flash-lite': 1}}

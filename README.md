@@ -93,12 +93,18 @@ cache/llm/       every LLM response, keyed by prompt hash
 ## Models
 
 The agent generates on Groq with `openai/gpt-oss-120b`. The judge scores on
-Google's `gemini-3.5-flash`. Different vendors and different model families on
-purpose: a judge from the same family as the generator tends to prefer its own
+Google's `gemini-3.5-flash-lite`. Different vendors and different model families
+on purpose: a judge from the same family as the generator tends to prefer its own
 phrasing, which would inflate every reply-quality number in the report.
 
-Groq's free tier is capped at 8,000 tokens per minute rather than by request
-count, so `llm.py` keeps a rolling token budget and paces itself against it.
+Both free tiers bind in ways that shaped the code. Groq caps tokens per minute
+rather than requests, so `llm.py` keeps a rolling 60-second token budget and
+reconciles its reservation against real usage after each call. Gemini caps
+requests per day *per model*, so exhausting one model's allowance leaves its
+siblings untouched; the judge is pinned to one model and refuses to fail over,
+because a quota wall must stop a run rather than silently change the instrument
+mid-experiment. Every verdict records the model that produced it and the scripts
+refuse to aggregate verdicts from more than one judge.
 
 ## Report
 

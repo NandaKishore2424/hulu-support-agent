@@ -76,9 +76,20 @@ only rank position.
 
 ### 12. The judge is a different vendor from the generator
 The agent writes on Groq with `openai/gpt-oss-120b`; the judge scores on Google's
-`gemini-3.5-flash`. A judge from the same family tends to prefer its own
+`gemini-3.5-flash-lite`. A judge from the same family tends to prefer its own
 phrasing. For the same reason the emergency failover model is deliberately *not*
 the judge model, and any run served by it is counted and reported.
+
+### 12a. The judge is pinned to one model, and a quota wall stops the run
+`gemini-3.5-flash` was the judge until its free-tier daily request allowance ran
+out part way through the first judging pass. That allowance is per model, so a
+sibling model had an untouched one. Two things followed. The 16 verdicts the old
+judge had produced were **deleted rather than mixed in**, because scores from two
+different judges are not comparable and quietly blending them would corrupt every
+reply-quality comparison in the report. And the judge is now forbidden from
+failing over to another model, so hitting a wall raises instead of silently
+swapping the measuring instrument. Every verdict records its `judge_model` and
+both reporting scripts exit if they are handed a mixed set.
 
 ### 13. The judge never sees the brand's real reply for the case it is scoring
 It sees the same retrieved exemplars the agent saw. Showing it the true reply

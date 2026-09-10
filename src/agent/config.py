@@ -44,9 +44,21 @@ AGENT_MODEL_FALLBACK = os.getenv("AGENT_MODEL_FALLBACK", "openai/gpt-oss-20b")
 AGENT_REASONING_EFFORT = os.getenv("AGENT_REASONING_EFFORT", "medium")
 
 # gemini-2.5-flash is closed to new API keys. gemini-3.6-flash answers but took
-# 23s per call in testing, which is too slow for a few hundred judgements, so the
-# judge is 3.5-flash.
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gemini-3.5-flash")
+# 23s per call, too slow for several hundred judgements.
+#
+# gemini-3.5-flash was the judge until its free-tier daily request cap ran out
+# mid-run. That cap is per model
+# (quotaId GenerateRequestsPerDayPerProjectPerModel-FreeTier), so a sibling model
+# has its own untouched allowance. The judge moved to 3.5-flash-lite, which
+# separates reply quality from postability just as cleanly on the discrimination
+# probe and answers in about a second.
+#
+# One judge scores every system or the comparison is meaningless, so the verdicts
+# written by the old judge were discarded rather than mixed in, every verdict now
+# records the model that produced it, and the scripts refuse to aggregate a mixed
+# set. The judge deliberately does not fail over to another model: a quota wall
+# must stop the run, not silently change the instrument.
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gemini-3.5-flash-lite")
 # Last-resort model if Groq's daily cap is hit mid-run. Deliberately NOT the
 # judge model: if the judge ever scored text written by its own weights the
 # independence argument would collapse. Runs served this way are counted and

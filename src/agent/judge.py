@@ -89,6 +89,7 @@ DIMENSIONS = ("grounded", "actionable", "safe", "voice")
 @dataclass
 class Verdict:
     case_id: str
+    judge_model: str
     grounded: int
     actionable: int
     safe: int
@@ -114,7 +115,7 @@ def _clamp(value, lo: int, hi: int, default: int) -> int:
 def judge_reply(case_id: str, message: str, reply: str,
                 exemplars: list[Exemplar], *, live: bool | None = None) -> Verdict:
     if not reply.strip():
-        return Verdict(case_id, 1, 1, 1, 1, 0, "empty reply")
+        return Verdict(case_id, C.JUDGE_MODEL, 1, 1, 1, 1, 0, "empty reply")
     prompt = TEMPLATE.format(
         message=message,
         exemplars=format_exemplars(exemplars) if exemplars else "(none available)",
@@ -123,7 +124,7 @@ def judge_reply(case_id: str, message: str, reply: str,
                               temperature=0.0, max_tokens=C.JUDGE_MAX_TOKENS,
                               live=live))
     return Verdict(
-        case_id=case_id,
+        case_id=case_id, judge_model=C.JUDGE_MODEL,
         grounded=_clamp(raw.get("grounded"), 1, 5, 3),
         actionable=_clamp(raw.get("actionable"), 1, 5, 3),
         safe=_clamp(raw.get("safe"), 1, 5, 3),

@@ -31,16 +31,22 @@ def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
-def load_gold(brand: str) -> dict[str, dict]:
+def load_gold(brand: str, labels_file: str) -> dict[str, dict]:
     """Merge the human labels with the slice metadata the labeller never saw."""
     meta = {r["case_id"]: r for r in read_jsonl(
         C.GOLDEN_DIR / f"golden_unlabelled_{brand}.jsonl")}
-    labels_path = C.GOLDEN_DIR / "golden_labels.jsonl"
+    labels_path = C.GOLDEN_DIR / labels_file
     if not labels_path.exists():
         sys.exit(f"no labels yet at {labels_path}\n"
                  f"run scripts/label.sh, label the set, export, and save it there.")
     gold = {}
-    for row in read_jsonl(labels_path):
+    rows = read_jsonl(labels_path)
+    if any(r.get("source") == "smoke_not_golden" for r in rows):
+        print("!" * 78)
+        print("SMOKE LABELS. Every number below is meaningless by construction and")
+        print("must not be reported. Re-run with the hand-labelled golden file.")
+        print("!" * 78 + "\n")
+    for row in rows:
         cid = row.get("case_id")
         if not cid or not row.get("intent") or not row.get("handling"):
             continue
@@ -59,9 +65,12 @@ def fmt_pct(x: float) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--brand", default="hulu_support")
+    ap.add_argument("--labels", default="golden_labels.jsonl",
+                    help="label file inside data/golden; use golden_labels_SMOKE.jsonl "
+                         "to exercise the harness before real labels exist")
     args = ap.parse_args()
 
-    gold = load_gold(args.brand)
+    gold = load_gold(args.brand, args.labels)
     rnd = {k: v for k, v in gold.items() if v["slice"] == "random"}
     print(f"golden labelled: {len(gold)}  (random slice {len(rnd)}, "
           f"boost {len(gold) - len(rnd)})")
@@ -129,6 +138,11 @@ def main() -> None:
           f" {'mean':>7s} {'usable':>7s} {'tokF1':>7s}")
     for name in SYSTEM_ORDER:
         verdicts = read_jsonl(JUDGE_DIR / f"{name}.jsonl")
+        models = {v.get("judge_model", "unknown") for v in verdicts}
+        if len(models) > 1:
+            sys.exit(f"{name} was judged by more than one model {sorted(models)}; "
+                     "scores from different judges are not comparable. "
+                     "delete reports/judgements and re-run the judge stage.")
         if not verdicts:
             continue
         preds = {r["case_id"]: r for r in read_jsonl(PRED_DIR / f"{name}.jsonl")}

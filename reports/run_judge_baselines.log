@@ -9,3 +9,43 @@ judging 100 cases per system with gemini-3.5-flash
   "error": {
     "code": 429,
     "message": "You exceeded your current quot
+  error on hulu_support-569997: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2792509: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-559375: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2870560: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-572608: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2617198: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2745876: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-511194: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-2816444: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-120996: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot

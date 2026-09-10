@@ -50,9 +50,11 @@ def main() -> None:
                  "serve data/golden/rate.html, rate the replies, export, save it there.")
 
     judge_by: dict[tuple[str, str], dict] = {}
+    seen_models: set[str] = set()
     for path in JUDGE_DIR.glob("*.jsonl"):
         for v in read_jsonl(path):
             judge_by[(v["case_id"], path.stem)] = v
+            seen_models.add(v.get("judge_model", "unknown"))
 
     pairs: list[tuple[dict, dict, str]] = []
     for row in human_rows:
@@ -66,6 +68,9 @@ def main() -> None:
         if verdict:
             pairs.append((row, verdict, system))
 
+    if len(seen_models) > 1:
+        sys.exit(f"verdicts come from more than one judge {sorted(seen_models)}; "
+                 "agreement across mixed judges is not interpretable.")
     if not pairs:
         sys.exit("no overlap between human ratings and judge verdicts. "
                  "run scripts/05_run_systems.py --stage judge first.")

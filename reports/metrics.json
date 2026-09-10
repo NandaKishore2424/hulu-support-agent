@@ -1,0 +1,78 @@
+{
+  "majority": {
+    "intent": {
+      "n": 120,
+      "accuracy": 0.075,
+      "ci": [
+        0.03333333333333333,
+        0.125
+      ],
+      "macro_f1": 0.013953488372093023
+    },
+    "triage": {
+      "n": 120,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "missed_escalations": 21,
+      "over_escalations": 0,
+      "missed_rate": 1.0,
+      "over_rate": 0.0,
+      "automation_rate": 1.0
+    }
+  },
+  "keyword_knn": {
+    "intent": {
+      "n": 120,
+      "accuracy": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "macro_f1": 1.0
+    },
+    "triage": {
+      "n": 120,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "missed_escalations": 0,
+      "over_escalations": 0,
+      "missed_rate": 0.0,
+      "over_rate": 0.0,
+      "automation_rate": 0.825
+    },
+    "quality": {
+      "n": 44,
+      "grounded": 3.5454545454545454,
+      "actionable": 3.227272727272727,
+      "safe": 4.7272727272727275,
+      "voice": 4.454545454545454,
+      "mean_quality": 3.9886363636363638,
+      "usable_rate": 0.36363636363636365,
+      "token_f1_vs_real_reply": 0.23307695054740094
+    }
+  },
+  "agent": {
+    "intent": {
+      "n": 87,
+      "accuracy": 0.41379310344827586,
+      "ci": [
+        0.3103448275862069,
+        0.5172413793103449
+      ],
+      "macro_f1": 0.32553261358524516
+    },
+    "triage": {
+      "n": 87,
+      "precision": 0.5333333333333333,
+      "recall": 0.5333333333333333,
+      "f1": 0.5333333333333333,
+      "missed_escalations": 7,
+      "over_escalations": 7,
+      "missed_rate": 0.4666666666666667,
+      "over_rate": 0.09722222222222222,
+      "automation_rate": 0.8275862068965517
+    }
+  }
+}
