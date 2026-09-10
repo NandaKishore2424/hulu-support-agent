@@ -134,3 +134,31 @@ def test_token_f1_rewards_overlap_not_identity():
 def test_taxonomy_and_accuracy_are_consistent():
     assert len(INTENT_NAMES) == len(set(INTENT_NAMES))
     assert accuracy(["a", "b"], ["a", "b"]) == 1.0
+
+
+def test_quota_exhausted_is_detected_from_a_429_body():
+    from agent.llm import _is_daily_cap
+    tpd = ('{"error":{"message":"Rate limit reached for model X on tokens per day '
+           '(TPD): Limit 200000, Used 199235, Requested 2560."}}')
+    assert _is_daily_cap(tpd)
+    assert not _is_daily_cap('{"error":{"message":"tokens per minute (TPM) exceeded"}}')
+
+
+def test_quota_exhausted_propagates_instead_of_failing_over():
+    """A spent daily allowance must stop the run, not be retried on every item."""
+    import agent.llm as llm
+
+    calls = []
+
+    def boom(system, user, model, temperature, max_tokens, json_mode):
+        calls.append(model)
+        raise llm.QuotaExhausted("daily allowance gone")
+
+    original = llm._call_groq
+    llm._call_groq = boom
+    try:
+        with pytest.raises(llm.QuotaExhausted):
+            llm.complete("s", "u", provider="groq", live=True, allow_failover=True)
+    finally:
+        llm._call_groq = original
+    assert len(calls) == 1, "should not have tried the fallback model"

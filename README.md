@@ -108,6 +108,9 @@ refuse to aggregate verdicts from more than one judge.
 
 ## Report
 
+`data/golden/GOLDEN_SET.md` describes how the evaluation set was sampled and
+labelled, and what is wrong with it.
+
 `reports/REPORT.md` covers problem framing, results against the baselines, the
 top failure modes with real examples, what is misleading about the headline
 number, and what a further week would buy. `reports/DECISION_LOG.md` lists the

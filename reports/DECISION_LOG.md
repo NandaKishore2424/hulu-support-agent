@@ -128,3 +128,29 @@ off-by-one disagreement is not treated like an opposite verdict. Per system, by
 checking whether the judge ranks the systems in the same order a human does.
 Every claim in the report is a comparison between systems, so ranking agreement
 is the property the report actually depends on.
+
+### 20. The ablation runs on a third model, and both arms move together
+Groq's daily token allowance for the agent's model was gone before the retrieval
+ablation could run, and the sibling model's allowance went the same way. Rather
+than drop the ablation, both arms were re-run on `qwen/qwen3.8-27b`, which still
+had budget.
+
+The alternative on offer was cheaper and wrong: compare the existing
+gpt-oss-120b-with-retrieval predictions against a fresh no-retrieval run on a
+smaller model. That would have confounded retrieval with model size and produced
+a number that looks like an ablation and is not one. Re-running both arms costs
+twice the calls and answers the actual question. What it gives up is any claim
+about the magnitude on the deployed model, which the report states plainly.
+
+### 21. A quota wall must propagate, not fail over
+The failover path caught `QuotaExhausted` along with everything else and reported
+"all providers failed", so a spent daily allowance produced one doomed call per
+item instead of one clear stop. It now propagates. The bug is worth recording
+because it hid its own cause: the run looked like hundreds of unrelated errors.
+
+### 22. `reasoning_effort` is a gpt-oss parameter and is now scoped to gpt-oss
+Sending it to Qwen made the model spend its entire output budget thinking and
+return an empty completion, which Groq rejects as a malformed-JSON 400 rather
+than anything mentioning reasoning or length. The failure looked nothing like its
+cause, which is the second time in this project a provider reported a limit as a
+different kind of error.

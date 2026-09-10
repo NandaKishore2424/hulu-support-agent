@@ -135,6 +135,57 @@ that "sounds right" and "can be sent" are different properties.
 baseline first. That is the predicted failure of the metric and the reason it is
 reported here only to be discounted. See section 5.
 
+### What retrieval actually contributes
+
+The tables above compare different systems. This one compares the same system
+with one thing removed, which is the only way to attribute the gain to retrieval
+rather than to the model.
+
+Both arms run on `qwen/qwen3.8-27b`, paired on the same 35 random-slice cases,
+same prompt, same temperature. They differ in exactly one respect: whether the
+prompt carries retrieved exemplars. The model is not the one the agent deploys
+on, because that model's daily token allowance was spent; the honest reading is
+"grounding changes what this model writes", not "by this much for the deployed
+agent". The wins column counts cases where the retrieval arm scored strictly
+higher, then strictly lower.
+
+| dimension | with retrieval | without | difference | 95% CI | wins / losses |
+|---|---:|---:|---:|---:|---:|
+| grounded | 4.66 | 2.31 | **+2.34** | +1.83 to +2.86 | 27 / 0 |
+| voice | 4.77 | 3.09 | **+1.69** | +1.31 to +2.06 | 27 / 0 |
+| actionable | 3.57 | 3.23 | +0.34 | −0.23 to +0.97 | 15 / 9 |
+| safe | 4.89 | 4.71 | +0.17 | +0.00 to +0.46 | 2 / 0 |
+| postable | 0.66 | 0.86 | **−0.20** | −0.37 to −0.03 | 2 / 9 |
+| mean quality | 4.47 | 3.34 | **+1.14** | +0.90 to +1.36 | |
+
+**Groundedness and voice are where retrieval pays, and it is not close.** 27 wins
+against 0 losses on both, with intervals nowhere near zero. Without exemplars the
+model writes generic support prose; with them it writes Hulu's. This is the
+strongest single result in the report.
+
+**Retrieval does not make replies more actionable.** +0.34 with an interval that
+crosses zero, and it loses on 9 of 35 cases. This agrees with the cross-system
+table, where the agent could not be separated from a hand-written template on the
+same dimension. Two independent measurements now say the same thing, so I believe
+it: retrieval teaches the model what this brand sounds like and what it has done
+before, not how to solve a problem.
+
+**Retrieval makes replies measurably less postable, and that is my fault.** The
+one dimension where grounding actively hurts, −0.20 with an interval clear of
+zero, losing 9 cases to 2. The mechanism is the `<URL>` placeholder from failure
+mode 1: every exemplar carries it, so grounding a reply in real history is also
+how the placeholder gets copied in. This quantifies the cost of a preprocessing
+decision I made in the first hour, and it is the clearest argument in the project
+for fixing it at the source rather than papering over it downstream.
+
+**Retrieval barely moves classification.** The two arms agree on intent 89% of the
+time, which is what I would expect: the intent is legible from the customer's own
+words, and past cases mostly inform the answer rather than the label.
+
+Also worth noting: with exemplars available the model cited at least one on 100%
+of these cases, against the 15 ungrounded auto-answers in failure mode 4 on the
+larger run.
+
 ### Classification and triage
 
 Incomplete. Both depend on the hand-labelled golden set, and on the free-tier
@@ -273,13 +324,17 @@ tier enforces a ceiling of 200,000 tokens per day that appears in no response
 header: the rate-limit headers report a healthy per-minute token bucket and 993
 remaining requests while the daily budget is finished, and the real limit surfaces
 only inside the body of a 429. One agent call costs roughly 2,400 tokens, so the
-allowance is about 83 calls a day, and it ran out with 37 golden items and the
-retrieval ablation unmeasured. Those items are not a random subset of the golden
-set, they are whatever remained in file order, so the missing 37 could be
-systematically different from the 163 scored. The ablation gap is worse: without
-it, the claim that retrieval is what drives the groundedness advantage rests on
-comparing against a copy baseline rather than against the same model with
-retrieval removed.
+allowance is about 83 calls a day, and it ran out with 37 golden items
+unmeasured. Those items are not a random subset, they are whatever remained in
+file order, so the missing 37 could differ systematically from the 163 scored.
+
+**The ablation is on a different model from the agent.** The same wall meant the
+retrieval ablation could not run on gpt-oss-120b, so both of its arms run on
+qwen3.8-27b instead. The comparison is internally valid, since the arms differ
+only in whether exemplars are present, but it measures retrieval's effect on a
+different model. The direction of the effect is so large, +2.34 on groundedness
+with 27 wins and no losses, that I would be surprised if it reversed on the
+deployed model, but the magnitude should not be transferred.
 
 **One run, no variance estimate.** Results come from a single pass at temperature
 zero. gpt-oss reasons before answering and is not perfectly deterministic, so

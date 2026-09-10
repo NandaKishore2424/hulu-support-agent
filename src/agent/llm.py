@@ -197,8 +197,13 @@ def _call_groq(system: str, user: str, model: str, temperature: float,
                      {"role": "user", "content": user}],
         "temperature": temperature,
         "max_tokens": max_tokens,
-        "reasoning_effort": C.AGENT_REASONING_EFFORT,
     }
+    # reasoning_effort is a gpt-oss parameter. Sending it to Qwen made it spend
+    # its whole budget thinking and return an empty completion, which Groq
+    # rejects with a 400 json_validate_failed rather than a quota error, so the
+    # failure looks nothing like its cause.
+    if model.startswith("openai/gpt-oss"):
+        payload["reasoning_effort"] = C.AGENT_REASONING_EFFORT
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
     headers = {"Authorization": f"Bearer {C.GROQ_API_KEY}"}
@@ -275,6 +280,13 @@ def complete(system: str, user: str, *, provider: str = "groq",
         try:
             fn = _call_groq if prov == "groq" else _call_gemini
             text, usage = fn(system, user, mdl, temperature, max_tokens, json_mode)
+        except QuotaExhausted:
+            # A daily allowance is gone. Every later attempt on the same provider
+            # is doomed and the caller needs to stop the whole run, so this must
+            # propagate rather than be folded into "all providers failed". Without
+            # this the loop kept calling a capped model once per item, turning one
+            # clear stop into hundreds of identical failures.
+            raise
         except Exception as exc:                      # noqa: BLE001 - recorded, then failover
             last_error = f"{prov}/{mdl}: {exc}"
             USAGE.errors.append(last_error)
