@@ -1,0 +1,11 @@
+{
+  "brand": "hulu_support",
+  "n_cases": 14788,
+  "n_history": 11091,
+  "n_holdout": 3697,
+  "date_min": "2014-09-15 23:53:27+00:00",
+  "date_max": "2017-12-03 22:09:37+00:00",
+  "split_boundary": "2017-11-17 02:29:42+00:00",
+  "median_turns": 2.0,
+  "multi_turn_share": 0.35609954016770357
+}

@@ -1,0 +1,11 @@
+judging 100 cases per system with gemini-3.5-flash
+
+[keyword_knn] 100 in subset, 7 judged, 93 to go
+  error on hulu_support-175269: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot
+  error on hulu_support-488625: all providers failed. last error: gemini/gemini-3.5-flash: exhausted retries: 429 {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quot

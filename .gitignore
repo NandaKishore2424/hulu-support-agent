@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/raw/
+*.zip
+.ipynb_checkpoints/
+data/processed/*.jsonl
+!data/processed/*.jsonl.gz

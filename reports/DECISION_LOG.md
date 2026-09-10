@@ -1,0 +1,119 @@
+# Decision log
+
+The non-obvious choices, and why. Each one changes a number in the report.
+
+### 1. Brand chosen by measured handoff rate, not by volume
+The reply half of this project can only be evaluated for a brand that resolves
+cases in public. My first metric counted only "DM us" and ranked AmazonHelp top
+at a 0.7% deflection rate. Reading Amazon's actual replies showed it deflects by
+pasting a web-form link instead. Counting channel-switch phrasing raised Amazon
+to 12.1% and moved hulu_support, at 7.1%, to the front. **The first version of
+the metric was wrong and the ranking it produced was wrong.**
+
+### 2. Chronological split rather than random
+Retrieval may only see cases from before the evaluation window. The same
+complaint recurs daily on this account, so a random split would let the agent
+retrieve a near-duplicate of the very case being scored and every reply-quality
+number would be inflated. The boundary is 2017-11-17; the last 3,697 cases are
+held out.
+
+### 3. Taxonomy induced from the history split only
+The label set was designed by reading 120 sampled openings from the history
+split. The holdout was never read while designing it, so the taxonomy is not
+fitted to the examples it is later scored on.
+
+### 4. Ten intents, including two that exist for the triage decision
+`unactionable_or_churn` and `service_outage` are small classes and would be
+tempting to fold into their neighbours. They are kept separate because they are
+the intents whose correct handling is *escalate*. Collapsing them would hide the
+triage decision inside the classifier.
+
+### 5. Boundary rules written down for the confusable pairs
+`playback_error` versus `service_outage`, and `content_availability` versus
+`plans_billing`, are genuinely ambiguous. Both pairs have an explicit written
+rule in `taxonomy.py`, and the same text is shown to the human labeller and to
+the model. Without a stated rule, disagreement on those pairs is noise rather
+than a finding.
+
+### 6. Golden set is 120 uniform random plus 80 keyword-probed
+Rare intents appear two or three times in 120 messages, which cannot support a
+per-class recall estimate. The boost slice fixes that. **Headline accuracy is
+reported on the random slice only**, because the boost slice does not reflect
+real traffic; the union is used for per-class breakdowns and both are labelled as
+such in every table.
+
+### 7. The boost slice is selected by hand-written regexes, never by the classifier
+Choosing evaluation items with the model under test makes per-class numbers
+circular. The probes are guesses about surface form, they are allowed to be
+wrong, and whatever they surface is still labelled by a human.
+
+### 8. The labeller is blind to slice membership and to the brand's real reply
+Knowing an item was pulled by the `ads_experience` probe would nudge the label
+toward that intent, so slice and probe are stripped from the labelling page.
+Hulu's actual reply is hidden behind a reveal key, because reading it first
+anchors the label to how Hulu happened to answer, which is the thing the agent is
+scored against. Every reveal is recorded and the count is reported.
+
+### 9. Escalation is decided by policy code, not by the prompt
+The model proposes a handling decision; hard rules in `apply_policy` can override
+it. Billing always goes to a human, so does an outage, so does anything below a
+0.55 confidence floor. A policy that lives only inside a prompt cannot be unit
+tested, cannot be audited, and changes silently when the model is swapped. Every
+override is counted, and in smoke testing the model wanted to auto-handle a
+reported outage that policy correctly escalated.
+
+### 10. The retrieval pool excludes handoff replies
+Roughly one Hulu reply in ten is a redirect to phone or chat. Leaving those in
+the exemplar pool teaches the agent to deflect, which is the behaviour this brand
+was chosen for *not* doing. 9,996 of 11,091 history cases survive the filter.
+
+### 11. Hybrid retrieval, fused by rank rather than score
+BM25 over words catches the tokens that decide the answer, since Roku and PS4
+need different steps. Character 3-5 gram TF-IDF survives "buffring" and
+"chromcast", which are out of vocabulary for word matching. Their scores are on
+incomparable scales, so they are combined by reciprocal rank fusion, which uses
+only rank position.
+
+### 12. The judge is a different vendor from the generator
+The agent writes on Groq with `openai/gpt-oss-120b`; the judge scores on Google's
+`gemini-3.5-flash`. A judge from the same family tends to prefer its own
+phrasing. For the same reason the emergency failover model is deliberately *not*
+the judge model, and any run served by it is counted and reported.
+
+### 13. The judge never sees the brand's real reply for the case it is scoring
+It sees the same retrieved exemplars the agent saw. Showing it the true reply
+would make it score similarity to one particular answer rather than quality, and
+would punish a correct alternative. Similarity to the real reply is computed
+separately as `token_f1`, and distrusted, because Hulu's own reply is frequently
+a handoff and scoring high against it can mean the agent learned to deflect.
+
+### 14. Rubric anchors at 1, 3 and 5, and `usable` is separated from quality
+Unanchored 1-to-5 scales drift to 4 for everything. Separating postability from
+quality was immediately load-bearing: a reply that leaked the literal `<URL>`
+placeholder scored 4.5 on advice quality and 0 on usable, which is exactly the
+decomposition an operator needs.
+
+### 15. Escalation errors are reported as two numbers and never averaged
+Auto-handling something that needed a human is customer-visible. Escalating
+something automatable costs a human a minute. An F1 that blends them hides the
+one that matters.
+
+### 16. Every LLM response is cached to disk and committed
+Reproduction of the headline numbers needs no API key, no network and about a
+minute. The live path is behind an explicit `--live` flag so an accidental re-run
+cannot silently burn a day's quota.
+
+### 17. The client throttles on tokens per minute, not requests
+Groq's own headers report the binding limit as 8,000 tokens per minute against
+1,000 requests per day, and one agent prompt is roughly 1,900 tokens. A fixed
+sleep cannot pace that, because prompts vary in size by a factor of two. The
+client keeps a rolling 60-second token budget and reconciles its reservation
+against the provider's real usage after each call, which raised sustained
+throughput from about one call a minute to over five.
+
+### 18. Judge quality is validated at two levels
+Per item, against human ratings, using quadratic weighted kappa so that an
+off-by-one disagreement is not treated like an opposite verdict. Per system, by
+checking whether the judge ranks the systems in the same order a human does.
+Every claim in the report is a comparison between systems, so ranking agreement
+is the property the report actually depends on.

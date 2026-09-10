@@ -1,0 +1,1 @@
+{"text": "{\"ok\":true}", "served_by": "groq/openai/gpt-oss-120b", "key": {"provider": "groq", "model": "openai/gpt-oss-120b", "system": "Reply with JSON only.", "user": "Return {\"ok\":true} and nothing else.", "temperature": 0.0, "max_tokens": 1400, "json": true}}

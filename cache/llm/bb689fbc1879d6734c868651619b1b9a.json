@@ -1,0 +1,1 @@
+{"text": "{\"ok\": true}", "served_by": "gemini/gemini-3.5-flash", "key": {"provider": "gemini", "model": "gemini-3.5-flash", "system": "Reply with JSON only.", "user": "Return {\"ok\":true} and nothing else.", "temperature": 0.0, "max_tokens": 1400, "json": true}}
