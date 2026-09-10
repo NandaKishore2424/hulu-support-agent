@@ -189,3 +189,19 @@ rather than what the browser believes.
 
 Verified end to end by driving the page in a browser and confirming the row
 appeared on disk, rather than assuming the wiring worked.
+
+### 25. The labelling page presents the random slice first
+Items from the uniform-random slice come first, in their seeded order, then the
+keyword-probed ones. The labeller still cannot tell which slice anything belongs
+to, so this introduces no bias in the labels themselves.
+
+It buys two things. Every headline number depends only on the random slice, so
+the results are complete once the first 120 items are labelled and the set stays
+usable if labelling has to stop early. And the freshest attention lands on the
+slice the headline figures rest on rather than on the boost slice, which only
+feeds per-class breakdowns.
+
+The cost is that fatigue now concentrates in the boost slice, so its per-class
+recall figures are the ones most likely to carry labelling noise. That is the
+right way round: it is better to have tired labels on the numbers used for
+diagnosis than on the numbers used for the headline.

@@ -63,7 +63,7 @@ button:hover{border-color:var(--acc)}
   <div id="bar"><div style="width:0"></div></div>
   <div class="meta">
     <span id="pos"></span><span id="cid"></span><span id="date"></span>
-    <span id="done"></span><span id="peeked"></span>
+    <span id="done"></span><span id="goal" style="color:#fbbf24"></span><span id="peeked"></span>
   </div>
   <div id="msg"></div>
   <div id="reply" hidden></div>
@@ -121,6 +121,14 @@ function render(){
   const c = cur(), r = labels[c.case_id] || {};
   document.querySelector("#bar>div").style.width = (100*Object.values(labels).filter(x=>x.intent&&x.handling).length/ITEMS.length)+"%";
   document.getElementById("pos").textContent = `item ${i+1} / ${ITEMS.length}`;
+  const nDone = Object.values(labels).filter(x=>x.intent&&x.handling).length;
+  const goal = document.getElementById("goal");
+  if(goal){
+    if(nDone < 120) goal.textContent = `${120-nDone} more for the headline results`;
+    else if(nDone < 150) goal.textContent = `${150-nDone} more to meet the brief's minimum of 150`;
+    else if(nDone < ITEMS.length) goal.textContent = `past the minimum, ${ITEMS.length-nDone} optional left`;
+    else goal.textContent = "complete";
+  }
   document.getElementById("cid").textContent = c.case_id;
   document.getElementById("date").textContent = c.created_at;
   const n = Object.values(labels).filter(x=>x.intent&&x.handling).length;
@@ -192,6 +200,18 @@ def main() -> None:
 
     src = C.GOLDEN_DIR / f"golden_unlabelled_{args.brand}.jsonl"
     items = [json.loads(line) for line in src.read_text(encoding="utf-8").splitlines()]
+
+    # Random-slice items are presented first, keeping their seeded order, then the
+    # keyword-probed ones. The order is invisible to the labeller, who still cannot
+    # tell which slice an item came from, so it introduces no labelling bias.
+    #
+    # It buys two things. The headline numbers need only the random slice, so they
+    # are complete once the first 120 are done and the set stays usable if
+    # labelling is cut short. And the freshest attention lands on the slice that
+    # every headline figure depends on, rather than on the boost slice.
+    items = ([it for it in items if it.get("slice") == "random"]
+             + [it for it in items if it.get("slice") != "random"])
+
     # slice/probe deliberately withheld from the page so they cannot bias labels
     public = [{k: v for k, v in it.items() if k not in ("slice", "probe")} for it in items]
 
