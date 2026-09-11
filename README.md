@@ -68,10 +68,16 @@ the output. That one annoyed me.
 intervals overlap. The template just asks what device you're on, which turns out
 to be useful for almost anything.
 
-Two caveats worth stating up front. All 200 labels are mine, and I also wrote the
-taxonomy, so there's no second annotator and no ceiling estimate. And I never got
-to check the reply judge against a human, so those quality scores rank the systems
-against each other and mean nothing in absolute terms. Both are in
+**The reply judge doesn't agree with a human either.** I rated 37 replies myself
+on the judge's own rubric. Weighted kappa comes out at or below zero on all four
+dimensions, negative on two. It's harsher than me on groundedness and
+actionability by about 1.5 points and more generous on safety by 1.4. So the
+absolute numbers in the quality table don't mean what a person would mean by them.
+Both of us do rank the agent first, which is the only thing the conclusions
+actually use.
+
+One more caveat. All 200 labels are mine and I also wrote the taxonomy, so there's
+no second annotator and no ceiling estimate. Everything is in
 [the report](reports/REPORT.md).
 
 ## Running it

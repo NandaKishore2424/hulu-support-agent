@@ -160,8 +160,60 @@ carries their name and their link.
 **Overlap with Hulu's real reply ranks the copy baseline first**, the predicted
 failure of that metric and why it is reported only to be discounted.
 
-These scores carry their own caveat: the judge has never been checked against a
-human, so they establish relative ordering between systems and nothing absolute.
+These scores carry a heavy caveat, measured below: the judge does not agree with a
+human beyond chance at the item level, so the absolute values mean little. The
+ordering between systems is what survives.
+
+### Does the judge agree with a human?
+
+37 replies were rated by hand on the judge's own rubric, blind to which system
+wrote each one. The brief asks for this evidence and it is the least flattering
+measurement in the report.
+
+| dimension | exact | within 1 | quadratic weighted kappa | human mean | judge mean |
+|---|---:|---:|---:|---:|---:|
+| grounded | 38% | 46% | +0.024 | 4.54 | 2.95 |
+| actionable | 16% | 38% | +0.008 | 4.35 | 2.95 |
+| safe | 16% | 41% | −0.100 | 3.51 | 4.89 |
+| voice | 14% | 46% | −0.107 | 3.19 | 3.84 |
+| postable | 68% | — | +0.018 | 0.92 | 0.70 |
+
+**The judge does not agree with me beyond chance on any dimension.** Weighted
+kappa is at or below zero throughout, and on two dimensions it is negative,
+meaning the disagreement is worse than random. Agreement within one point never
+reaches half the items. On a five-point scale that is close to no relationship.
+
+**The disagreement is systematic rather than noisy, and it runs in opposite
+directions per dimension.** The judge is 1.59 points harsher than me on
+groundedness and 1.41 harsher on actionability, while being 1.38 points more
+generous on safety and 0.65 on voice. The raw distributions show why: I marked 31
+of 41 replies a 5 for groundedness while the judge split bimodally between 1 and 5,
+and the judge called 39 of 41 replies perfectly safe while my modal score was 3.
+We are not making noisy versions of the same judgement, we are applying different
+standards.
+
+**The one claim the report leans on survives.** Ranking systems by mean quality,
+both raters put the agent first. We disagree on the order of the two baselines,
+which the report does not rely on.
+
+| system | n | human mean | judge mean |
+|---|---:|---:|---:|
+| agent | 10 | 4.05 | 4.33 |
+| majority template | 14 | 3.88 | 3.07 |
+| keyword + copy | 13 | 3.81 | 3.77 |
+
+**What this costs the reply-quality section.** Every absolute number in it is now
+unvalidated: a grounded score of 3.92 does not mean what a person would call 3.92.
+The comparative ordering between systems, which is what the conclusions actually
+use, holds under both raters. The retrieval ablation is scored by the same judge,
+so its magnitudes inherit the same warning, though a 27-to-0 win count is hard to
+explain away as miscalibration.
+
+**Two caveats on this measurement itself.** It is one rater on 37 items, rated
+quickly. And my grounded scores cluster hard at the top, 76% of them a 5, which
+mechanically suppresses kappa regardless of how good the judge is. That excuse does
+not cover safe and voice, where my scores were well spread and kappa still came out
+negative.
 
 ### What retrieval contributes
 
@@ -261,12 +313,13 @@ need a human and that a churn threat outranks the underlying issue. Hulu may wel
 handle both automatically in DMs. The triage numbers measure consistency with a
 stated policy, not agreement with Hulu's real one.
 
-**No judge-versus-human evidence exists.** The reply-rating pass was not
-completed. The judge's rubric, vendor independence and blindness to system
-identity are all in place, and its discrimination probes behave correctly, but
-nothing anchors it to a person. Every reply-quality number establishes relative
-ordering between systems and nothing absolute. This is a deliverable that is
-missing, not one that came out weak.
+**The judge does not agree with a human, and the reply-quality numbers inherit
+that.** Weighted kappa is at or below zero on all four dimensions. The judge is
+systematically harsher on groundedness and actionability and more generous on
+safety and voice, which means its absolute scores cannot be read as a person's
+would be. The system ordering survives, since both raters rank the agent first,
+and that ordering is what the conclusions use. This was worth measuring precisely
+because the result changes what the earlier table is allowed to claim.
 
 **No outcome data, so "quality" means plausibility.** Nothing in this dataset says
 whether a reply fixed the problem. A reply can score 5 across the rubric and solve
@@ -319,8 +372,12 @@ margin large enough to change every conclusion.
    customer who thanks is weak evidence of resolution; one who restates the problem
    is weak evidence against. Noisy, but it moves reply evaluation from plausibility
    toward effect.
-5. **Rate 40 replies by hand** to anchor the judge, which is the missing
-   deliverable, then **evaluate retrieval on its own.** Right now a retrieval failure and a
+5. **Rewrite the judge rubric against the disagreement data.** The judge and I
+   apply the scale in opposite directions on four dimensions, so the anchors are
+   not doing their job. I would rewrite them using the cases we disagreed on as
+   worked examples, then re-measure. After that, **evaluate retrieval on its own**,
+   since a retrieval failure and a generation failure are currently
+   indistinguishable from the outside. Right now a retrieval failure and a
    generation failure are indistinguishable from the outside. Hand-labelled
    relevance for 50 queries would give recall@k.
 6. **Fix the placeholder leak at source**, resolving `<URL>` to the real Hulu help

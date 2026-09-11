@@ -60,10 +60,19 @@ would score similarity to one response and punish a correct alternative. When
 deleted rather than mixed with the replacement's: scores from two judges are not
 comparable. Every verdict records its model and the scripts refuse a mixed set.
 
-**10. The rubric is anchored at 1, 3 and 5, and postability is separate from
-quality.** Unanchored scales drift to 4 for everything. The separation was
-immediately load-bearing: a reply leaking the `<URL>` placeholder scored 4.5 on
-advice and 0 on postable, which is exactly the decomposition an operator needs.
+**10. The rubric is anchored at 1, 3 and 5, postability is separate from quality,
+and the whole thing was then checked against a human.** Unanchored scales drift to
+4 for everything. Separating postability was immediately load-bearing: a reply
+leaking the `<URL>` placeholder scored 4.5 on advice and 0 on postable, exactly the
+decomposition an operator needs.
+
+Checking the judge against 37 hand-rated replies showed the anchors did not do
+their main job. Weighted kappa is at or below zero on every dimension, and the
+judge runs about 1.5 points harsher than me on groundedness and 1.4 more generous
+on safety. Both of us still rank the agent first, so the comparative claim holds,
+but no absolute reply-quality number in this report is validated. Measuring this
+cost the report a section of confidence and is the main reason to trust the rest of
+it.
 
 **11. Escalation errors are two numbers, never averaged.** Auto-handling something
 that needed a human is customer-visible. Escalating something automatable costs a

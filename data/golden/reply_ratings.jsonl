@@ -1,0 +1,42 @@
+{"rating_id": "hulu_support-2617198::majority", "case_id": "hulu_support-2617198", "system": null, "grounded": 5, "t": 1789151196081, "actionable": 5, "safe": 3, "voice": 5, "usable": 1}
+{"rating_id": "hulu_support-2512348::agent", "case_id": "hulu_support-2512348", "system": null, "grounded": 5, "t": 1789151205681, "actionable": 5, "safe": 3, "voice": 5, "usable": 1}
+{"rating_id": "hulu_support-2736129::agent", "case_id": "hulu_support-2736129", "system": null, "grounded": 5, "t": 1789151209924, "actionable": 5, "safe": 3, "voice": 5, "usable": 1}
+{"rating_id": "hulu_support-2683235::agent", "case_id": "hulu_support-2683235", "system": null, "grounded": 5, "t": 1789151215270, "actionable": 5, "safe": 3, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-486309::majority", "case_id": "hulu_support-486309", "system": null, "grounded": 3, "t": 1789151220788, "actionable": 3, "safe": 4, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-2617198::keyword_knn", "case_id": "hulu_support-2617198", "system": null, "grounded": 5, "t": 1789151224030, "actionable": 5, "safe": 3, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-175258::majority", "case_id": "hulu_support-175258", "system": null, "grounded": 5, "t": 1789151228993, "actionable": 5, "safe": 3, "voice": 2, "usable": 0}
+{"rating_id": "hulu_support-2683235::majority", "case_id": "hulu_support-2683235", "system": null, "grounded": 5, "t": 1789151232366, "actionable": 5, "safe": 3, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-2740542::keyword_knn", "case_id": "hulu_support-2740542", "system": null, "grounded": 5, "t": 1789151236493, "actionable": 5, "safe": 4, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-523886::majority", "case_id": "hulu_support-523886", "system": null, "grounded": 5, "t": 1789151240156, "actionable": 5, "safe": 3, "voice": 5, "usable": 1}
+{"rating_id": "hulu_support-654038::majority", "case_id": "hulu_support-654038", "system": null, "grounded": 1, "t": 1789151245733, "actionable": 1, "safe": 5, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-2792509::keyword_knn", "case_id": "hulu_support-2792509", "system": null, "grounded": 5, "t": 1789151250395, "actionable": 5, "safe": 1, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-654038::keyword_knn", "case_id": "hulu_support-654038", "system": null, "actionable": 5, "t": 1789151254012, "safe": 5, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-2512348::majority", "case_id": "hulu_support-2512348", "system": null, "grounded": 5, "t": 1789151257870, "actionable": 4, "safe": 4, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-572608::keyword_knn", "case_id": "hulu_support-572608", "system": null, "grounded": 5, "t": 1789151260991, "actionable": 4, "safe": 4, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-523886::keyword_knn", "case_id": "hulu_support-523886", "system": null, "grounded": 5, "t": 1789151263896, "actionable": 5, "safe": 5, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-113525::majority", "case_id": "hulu_support-113525", "system": null, "grounded": 5, "t": 1789151268825, "actionable": 5, "voice": 3, "safe": 3, "usable": 0}
+{"rating_id": "hulu_support-113525::keyword_knn", "case_id": "hulu_support-113525", "system": null, "grounded": 5, "t": 1789151273922, "actionable": 5, "voice": 3, "safe": 3, "usable": 1}
+{"rating_id": "hulu_support-488625::majority", "case_id": "hulu_support-488625", "system": null, "grounded": 5, "t": 1789151277161, "actionable": 5, "safe": 5, "voice": 5, "usable": 1}
+{"rating_id": "hulu_support-486309::agent", "case_id": "hulu_support-486309", "system": null, "grounded": 5, "t": 1789151280425, "actionable": 4, "safe": 3, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-572608::agent", "case_id": "hulu_support-572608", "system": null, "grounded": 3, "t": 1789151283618, "actionable": 3, "safe": 3, "usable": 1}
+{"rating_id": "hulu_support-572608::majority", "case_id": "hulu_support-572608", "system": null, "voice": 5, "t": 1789151287513, "grounded": 3, "actionable": 3, "safe": 3, "usable": 1}
+{"rating_id": "hulu_support-2792509::agent", "case_id": "hulu_support-2792509", "system": null, "grounded": 4, "t": 1789151293336, "actionable": 4, "safe": 4, "voice": 4, "usable": 0}
+{"rating_id": "hulu_support-488625::keyword_knn", "case_id": "hulu_support-488625", "system": null, "grounded": 5, "t": 1789151296864, "actionable": 5, "safe": 4, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-2736129::keyword_knn", "case_id": "hulu_support-2736129", "system": null, "grounded": 3, "t": 1789151331234, "actionable": 3, "safe": 3, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-2740542::majority", "case_id": "hulu_support-2740542", "system": null, "grounded": 5, "t": 1789151335678, "safe": 4, "actionable": 4, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-113525::agent", "case_id": "hulu_support-113525", "system": null, "grounded": 5, "t": 1789151340922, "safe": 5, "actionable": 5, "usable": 1}
+{"rating_id": "hulu_support-2617198::agent", "case_id": "hulu_support-2617198", "system": null, "voice": 2, "t": 1789151345148, "safe": 2, "actionable": 4, "grounded": 5, "usable": 1}
+{"rating_id": "hulu_support-2970408::keyword_knn", "case_id": "hulu_support-2970408", "system": null, "grounded": 5, "t": 1789151348886, "actionable": 4, "safe": 3, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-486309::keyword_knn", "case_id": "hulu_support-486309", "system": null, "grounded": 5, "t": 1789151352472, "actionable": 5, "safe": 5, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-2740542::agent", "case_id": "hulu_support-2740542", "system": null, "grounded": 5, "t": 1789151355609, "actionable": 5, "safe": 5, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-2792509::majority", "case_id": "hulu_support-2792509", "system": null, "grounded": 5, "t": 1789151359291, "actionable": 5, "safe": 5, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-2512348::keyword_knn", "case_id": "hulu_support-2512348", "system": null, "grounded": 5, "t": 1789151363261, "actionable": 5, "safe": 3, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-2970408::majority", "case_id": "hulu_support-2970408", "system": null, "grounded": 5, "t": 1789151367126, "actionable": 4, "safe": 4, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-488625::agent", "case_id": "hulu_support-488625", "system": null, "grounded": 5, "t": 1789151369840, "actionable": 5, "usable": 1}
+{"rating_id": "hulu_support-2736129::majority", "case_id": "hulu_support-2736129", "system": null, "voice": 2, "t": 1789151373025, "safe": 3, "actionable": 3, "grounded": 3, "usable": 1}
+{"rating_id": "hulu_support-2683235::keyword_knn", "case_id": "hulu_support-2683235", "system": null, "grounded": 3, "t": 1789151377176, "actionable": 3, "safe": 3, "voice": 3, "usable": 1}
+{"rating_id": "hulu_support-654038::agent", "case_id": "hulu_support-654038", "system": null, "grounded": 5, "t": 1789151381276, "actionable": 5, "safe": 3, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-2970408::agent", "case_id": "hulu_support-2970408", "system": null, "grounded": 4, "t": 1789151385681, "actionable": 4, "safe": 4, "voice": 4, "usable": 1}
+{"rating_id": "hulu_support-175258::keyword_knn", "case_id": "hulu_support-175258", "system": null, "grounded": 4, "t": 1789151391670, "actionable": 4, "safe": 2, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-523886::agent", "case_id": "hulu_support-523886", "system": null, "grounded": 5, "t": 1789151395273, "safe": 5, "voice": 2, "usable": 1}
+{"rating_id": "hulu_support-175258::agent", "case_id": "hulu_support-175258", "system": null, "grounded": 5, "t": 1789151399364, "actionable": 5, "safe": 5, "voice": 2, "usable": 1}
