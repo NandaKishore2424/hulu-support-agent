@@ -1,0 +1,181 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Spot check</title>
+<style>
+:root{--bg:#101216;--fg:#e8eaed;--dim:#9aa0a6;--line:#2a2e35;--acc:#4ade80;--warn:#fbbf24}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;display:flex}
+#main{flex:1;padding:24px 28px;max-width:820px}
+#side{width:390px;border-left:1px solid var(--line);padding:18px 20px;height:100vh;overflow:auto;font-size:12.5px;color:var(--dim)}
+#bar{height:4px;background:var(--line);border-radius:2px;margin-bottom:18px}
+#bar>div{height:100%;background:var(--acc);border-radius:2px;transition:width .15s}
+.meta{color:var(--dim);font-size:12px;display:flex;gap:16px;margin-bottom:10px}
+#msg{font-size:20px;line-height:1.45;background:#171a1f;border:1px solid var(--line);
+     border-left:3px solid var(--acc);padding:18px 20px;border-radius:6px;white-space:pre-wrap}
+#reply{margin-top:12px;padding:14px 16px;background:#14171c;border:1px dashed var(--line);
+       border-radius:6px;color:var(--dim);font-size:14px;white-space:pre-wrap}
+h4{margin:20px 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.opt{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:4px;cursor:pointer}
+.opt:hover{background:#1b1f25}
+.opt.sel{background:#1e2a20;color:var(--acc)}
+kbd{background:#22262d;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    padding:1px 7px;font:12px ui-monospace,monospace;color:var(--fg);min-width:22px;text-align:center}
+.stage{opacity:.35;pointer-events:none}
+.stage.on{opacity:1;pointer-events:auto}
+#done{color:var(--acc)} #peeked{color:var(--warn)}
+button{background:#22262d;color:var(--fg);border:1px solid var(--line);border-radius:5px;
+       padding:7px 14px;cursor:pointer;font-size:13px}
+button:hover{border-color:var(--acc)}
+.tax{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.tax b{color:var(--fg);font-size:12.5px}
+.tax .bd{color:#7c828a;font-style:italic;margin-top:3px}
+#hud{position:fixed;bottom:0;left:0;right:390px;background:#0b0d10;border-top:1px solid var(--line);
+     padding:9px 28px;font-size:12px;color:var(--dim);display:flex;gap:20px;align-items:center}
+</style></head><body>
+<div id="main">
+  <div id="bar"><div style="width:0"></div></div>
+  <div class="meta">
+    <span id="pos"></span><span id="cid"></span><span id="date"></span>
+    <span id="done"></span><span id="saved" style="color:#6ee7a8"></span><span id="goal" style="color:#fbbf24"></span><span id="peeked"></span>
+  </div>
+  <div id="msg"></div>
+  <div id="reply" hidden></div>
+
+  <div id="s1"><h4>1 &middot; primary intent</h4><div id="intents"></div></div>
+  <div id="s2" class="stage"><h4>2 &middot; handling</h4><div id="handling"></div></div>
+  <div id="s3" class="stage"><h4>3 &middot; escalation reason</h4><div id="reasons"></div></div>
+
+  <div style="margin:26px 0 60px;display:flex;gap:10px;flex-wrap:wrap">
+    <button onclick="prev()">&larr; back</button>
+    <button onclick="next()">skip &rarr;</button>
+    <button onclick="reveal()">reveal Hulu's reply (R)</button>
+    <button onclick="toggleAmb()">flag ambiguous (M)</button>
+    <button onclick="exportJSON()" style="border-color:var(--acc);color:var(--acc)">export JSON</button>
+  </div>
+</div>
+<div id="side"><h4 style="margin-top:0">label definitions</h4><div id="cheat"></div></div>
+<div id="hud">
+  <span><kbd>1</kbd>&ndash;<kbd>0</kbd> intent</span>
+  <span><kbd>a</kbd> auto &middot; <kbd>e</kbd> escalate</span>
+  <span><kbd>r</kbd> reveal &middot; <kbd>m</kbd> ambiguous</span>
+  <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
+  <span id="amb"></span>
+  <span id="nostore" hidden style="color:var(--warn)">no browser storage on this origin &mdash;
+    serve with <code>scripts/label.sh</code>; auto-exporting every 20 labels instead</span>
+</div>
+<script>
+const ITEMS = [{"idx": 129, "case_id": "hulu_support-486309", "customer_opening": "@user I can’t seem to figure out how to get to a Series page in the new app. It’s not very user friendly.", "brand_first_reply": "@user Hey, Deb! What device are you browsing on? We'd be more than happy to help you get familiar with the new layout. For now, check out this quick video and guide for some navigational tips: <URL>", "n_turns": 2, "created_at": "Fri Dec 01 03:53:40 +0000 2017"}, {"idx": 24, "case_id": "hulu_support-175269", "customer_opening": "Clue is no longer on @user 😭", "brand_first_reply": "@user Word on the street is you can blame Colonel Mustard for that one... 😉 We'll let Miss Scarlet and the others know your request.", "n_turns": 2, "created_at": "Fri Nov 24 23:26:17 +0000 2017"}, {"idx": 140, "case_id": "hulu_support-2740542", "customer_opening": "why do neither netflix or hulu have ponyo when i’m in the mood to watch it :((", "brand_first_reply": "@user Hiya! We will let the goldfish princess know that you would like to see her on Hulu!", "n_turns": 2, "created_at": "Mon Nov 20 16:46:31 +0000 2017"}, {"idx": 159, "case_id": "hulu_support-2948756", "customer_opening": "@user why do I pay monthly for something that doesn’t actually keep shows up to date??? #obnoxiousAF", "brand_first_reply": "@user Hi, Kaylie! Content availability varies by show. Which specific shows are you not seeing new episodes? We'll take a look and share your feedback with our team.", "n_turns": 3, "created_at": "Wed Nov 29 15:56:05 +0000 2017"}, {"idx": 189, "case_id": "hulu_support-1402622", "customer_opening": "Twitter help, I need a new show to watch on Hulu or Netflix", "brand_first_reply": "@user Hulu here! We'd be happy to send you over a recommendation, Leasa. What are some of your favorite shows?", "n_turns": 2, "created_at": "Sat Nov 25 20:10:56 +0000 2017"}, {"idx": 63, "case_id": "hulu_support-1719481", "customer_opening": "@user @user Your description of Season 7 Episode 10 of Seinfeld doesn’t fit the actual episode at all, do you guys mind rewriting it", "brand_first_reply": "@user Hey Steven! We've taken a peek at this on our end and see that the description matches the episode. What device are you using?", "n_turns": 2, "created_at": "Sun Nov 26 04:53:55 +0000 2017"}, {"idx": 50, "case_id": "hulu_support-1253967", "customer_opening": "So @user, when do we get season 2 of @user?", "brand_first_reply": "@user Hey, Mike! Sorry, no news to share regarding S2 of Diesel Bros on Hulu just yet. We'll forward the request to our content team! ✅", "n_turns": 6, "created_at": "Sat Nov 25 06:04:18 +0000 2017"}, {"idx": 117, "case_id": "hulu_support-465663", "customer_opening": "Dearest @user &amp; @user, in the current beta when you pause the show, or move your mouse over the window a giant white tint hits the screen. If i'm working while I watch I will move my mouse over the screen several times while a show plays. This is obnoxious and ugly. Thx.", "brand_first_reply": "@user Sorry for the frustration! We honestly appreciate the feedback as we continue to improve the service, however. We'll be sure to share it with the team. If you have any other suggestions, please feel free to share them with us here: <URL>", "n_turns": 2, "created_at": "Fri Dec 01 01:41:21 +0000 2017"}, {"idx": 46, "case_id": "hulu_support-2647541", "customer_opening": "@user I've tried to switch over to Spotify Premium for Students + Hulu multiple times, and the Spotify side works perfectly, but my Hulu account refuses to connect. I've switched to the limited commercials plan just for this &amp; been charged when I shouldn't have. Help pls!", "brand_first_reply": "@user Our apologies for the trouble, Erin! 😭 Call/chat us (<URL> if this isn't working: <URL>", "n_turns": 3, "created_at": "Fri Nov 17 22:01:08 +0000 2017"}, {"idx": 0, "case_id": "hulu_support-2978997", "customer_opening": "@user hi where is season 3 of Fargo I need it 😕", "brand_first_reply": "@user Aw geez, sorry about that! We don't currently have any details on the whereabouts of season three, but you betcha we'll share the request with our content team. We recommend keeping an eye on: <URL> to stay in the loop about what's coming up next.", "n_turns": 2, "created_at": "Thu Nov 30 02:54:02 +0000 2017"}, {"idx": 27, "case_id": "hulu_support-569997", "customer_opening": "@user Come On......The SEC Championship on CBS Affiliate in Atlanta,GA keeps freezing. I have reset the AppleTV and Router.......biggest game of season and you are failing.......", "brand_first_reply": "@user Our sincere apologies for the trouble today, Patrick. We did run into a hiccup that our team is investigating: <URL> We'll be sharing your experience, but if we can assist with anything else let us know.", "n_turns": 2, "created_at": "Sat Dec 02 23:38:10 +0000 2017"}, {"idx": 77, "case_id": "hulu_support-591332", "customer_opening": "@user way to drop the ball on the #SECChampionship, #hulu, of all things. All channles work BUT this one? You had one job. Buffering, buffering, CANCELLING.", "brand_first_reply": "@user We’re so sorry to hear about any frustration, Jennifer! We'd hate to see you go! We’re working to make improvements and updates for future sporting events, so we’ll be sharing your feedback and this experience with the appropriate teams.", "n_turns": 2, "created_at": "Sat Dec 02 22:23:21 +0000 2017"}, {"idx": 116, "case_id": "hulu_support-2967910", "customer_opening": "Hey @user y’all gonna update the iPhone app so the shows cover the full display for the X?", "brand_first_reply": "@user We're always looking for ways to improve our service, so we'll be sure to share the interest in this screen feature with our dev team!", "n_turns": 4, "created_at": "Wed Nov 29 23:22:08 +0000 2017"}, {"idx": 69, "case_id": "hulu_support-2598257", "customer_opening": "@user Hulu has completely gone down.. HELP!", "brand_first_reply": "@user Oh no! We'd love to help. Please let us know the device in use and details of the issue. For now, try: <URL>", "n_turns": 2, "created_at": "Fri Nov 17 03:44:33 +0000 2017"}, {"idx": 195, "case_id": "hulu_support-2735979", "customer_opening": "@user Is Hulu going to develop an Alexa skill to be able to watch on the Echo Show?", "brand_first_reply": "@user Excellent idea, Sonya! We'll be sure to have Alexa remind us of your suggestion.", "n_turns": 2, "created_at": "Mon Nov 20 18:59:47 +0000 2017"}, {"idx": 113, "case_id": "hulu_support-587998", "customer_opening": "@user fix your live game of the SEC championship. I’ve tried 4 different service providers on 3 different devices. All doing the same thing: skipping, freezing, and closing the stream.", "brand_first_reply": "@user Sincere apologies for the trouble and delay! As you've noticed, we had run into some trouble yesterday: <URL> are still investigating now to ensure this doesn't happen again in the future! Thank you so much for bearing with us!", "n_turns": 2, "created_at": "Sat Dec 02 21:39:49 +0000 2017"}, {"idx": 109, "case_id": "hulu_support-2982117", "customer_opening": "@user is the glitchiest streaming service out there. I'm seriously considering cancelling because of the level of frustration I find just trying to watch a show.", "brand_first_reply": "@user We'd hate to lose you, Sara! 😭 We're here to help. What exactly is occurring? Please let us know which devices you're using, and what you're watching when this happens. The more info you provide, the better we'll be able to assist. Try: <URL>", "n_turns": 2, "created_at": "Thu Nov 30 04:04:45 +0000 2017"}, {"idx": 41, "case_id": "hulu_support-2816444", "customer_opening": "The Old Navy commercial with the lady obnoxiously singing is the most stupid and annoying thing I’ve ever seen tbh @user playing it every five minutes really doesn’t help", "brand_first_reply": "@user Sorry, Isabel! While there isn't a way to block certain ads, updating this page may help: <URL>", "n_turns": 2, "created_at": "Mon Nov 27 01:46:17 +0000 2017"}, {"idx": 196, "case_id": "hulu_support-525135", "customer_opening": "What's Up @user ? \"The service cannot be accessed at this time; reference code 300\" Over &amp; over &amp; over &amp; over &amp; over..... Cant get thru to Support either, via Chat on <URL> Netflix, perhaps?", "brand_first_reply": "@user Sorry to hear you're having trouble! Perhaps we can help here. Which device is this occurring on? As a starting point, try running through: <URL> Any change?", "n_turns": 2, "created_at": "Sat Dec 02 02:48:55 +0000 2017"}, {"idx": 42, "case_id": "hulu_support-120996", "customer_opening": "Pretty sure the hulu customer service guy hung up on me lol", "brand_first_reply": "@user Apologies! We'd love to see how we can further assist. Please let us know more info about the issue at hand. We're here to help!", "n_turns": 2, "created_at": "Thu Nov 23 22:56:56 +0000 2017"}, {"idx": 98, "case_id": "hulu_support-570950", "customer_opening": "@user I just signed up for live TV and I can’t watch the SEC championship on CBS? Am I missing something?", "brand_first_reply": "@user Apologies for the poor first impression, Travis! Our team is looking into this behavior: <URL> for the future. Are you running into difficulty with any other networks? Let us know. We're here to help! 💚", "n_turns": 4, "created_at": "Sat Dec 02 23:48:51 +0000 2017"}, {"idx": 142, "case_id": "hulu_support-565582", "customer_opening": "@user Glad every time I want to watch football on Saturday your service is shit. <URL>", "brand_first_reply": "@user Our sincere apologies for the repeated trouble, Chase! We'll make sure your input reaches the right teams while we work to continually improve our services. We're available 24/7 via phone or chat for 1-on-1 assistance if it happens again: <URL>", "n_turns": 2, "created_at": "Sat Dec 02 22:17:49 +0000 2017"}, {"idx": 82, "case_id": "hulu_support-566846", "customer_opening": "@user Will &amp; Grace S3E17 is not the correct episode. Instead, it is S3E16. Please fix!!!", "brand_first_reply": "@user Hi Niki! S3 Ep16 and Ep17 are a two-part episode, so they are broken up into separate episode numbers: <URL> If the content itself is incorrect, let us know more info!", "n_turns": 3, "created_at": "Sat Dec 02 19:00:46 +0000 2017"}, {"idx": 3, "case_id": "hulu_support-2707794", "customer_opening": "Streaming the Pats game and keeps freezing every 2 seconds, thanks @user", "brand_first_reply": "@user Sorry, Taylor! What device is in use? Do any errors pop up? For now, try restarting your device and modem/router for 2 mins.", "n_turns": 2, "created_at": "Sun Nov 19 23:48:55 +0000 2017"}, {"idx": 182, "case_id": "hulu_support-565531", "customer_opening": "Sad about bad live streaming servers @user", "brand_first_reply": "@user We're very sorry for the trouble, Janc! This is an issue we are looking into with high priority. We'll make sure your report and experience reaches the right teams while we work to continually improve our services. If it happens again, try: <URL>", "n_turns": 2, "created_at": "Sat Dec 02 22:28:46 +0000 2017"}, {"idx": 151, "case_id": "hulu_support-2657227", "customer_opening": "This is awesome! Can we get @user on board with this Free add on service too? @user <URL>", "brand_first_reply": "@user Are you a student by chance? If so, we got you: <URL> We can share the interest in more with our team here.", "n_turns": 8, "created_at": "Sat Nov 18 18:24:44 +0000 2017"}, {"idx": 6, "case_id": "hulu_support-2805764", "customer_opening": "@user I tried Hulu and really hated it. Can I get a refund?", "brand_first_reply": "@user We're sorry to hear about the frustration. If the acct has usage, we're unable to offer a refund (<URL> 1/2", "n_turns": 4, "created_at": "Wed Nov 22 02:04:24 +0000 2017"}, {"idx": 29, "case_id": "hulu_support-2792509", "customer_opening": "@user I cancelled my subscription and I should have until 12/20 for services to stop yet I can’t even log in", "brand_first_reply": "@user Sorry to hear about this! Chat with us here: <URL> so we can take a closer look at your account.", "n_turns": 2, "created_at": "Tue Nov 21 19:33:55 +0000 2017"}, {"idx": 120, "case_id": "hulu_support-450329", "customer_opening": "why hasn’t @user uploaded the newest episode of @user from last night this is bs", "brand_first_reply": "@user Sorry for the delay! We just received word that the episode has been received and has been uploaded: <URL> Please reboot your device and enjoy the show! ✅", "n_turns": 2, "created_at": "Thu Nov 30 17:19:06 +0000 2017"}, {"idx": 22, "case_id": "hulu_support-1370052", "customer_opening": "I'm definitely making the switch. How much is Hulu per month? <URL>", "brand_first_reply": "@user Hi, Fredrick! We offer a few different plans starting at $7.99 a month. For all the details, see: <URL>", "n_turns": 4, "created_at": "Sat Nov 25 21:01:57 +0000 2017"}], TAX = [{"name": "playback_error", "definition": "Something the customer is watching is broken: it will not start, buffers, freezes, throws an error code, resets to the beginning, loses its resume position, or arrives with wrong subtitles or a truncated ending. Scoped to the customer's own viewing.", "boundary": "Use this when the customer describes their own failure, even angrily. Use service_outage only when they claim Hulu itself is broadly down. If the app never opens at all, that is app_device_problem."}, {"name": "login_access", "definition": "Cannot sign in, password will not work or reset, session drops and demands credentials again, signed into the wrong profile or account, or cannot sign out.", "boundary": "The blocking symptom must be authentication. A login prompt appearing after a crash is login_access; a crash with no login prompt is app_device_problem."}, {"name": "app_device_problem", "definition": "The application or a device integration is at fault rather than one video: app will not load or crashes, navigation or layout is unusable, casting is not detected, or an accessibility feature is broken.", "boundary": "A defect report about how the app behaves. If the customer merely dislikes a working design, that is product_feedback. Accessibility regressions belong here, not in product_feedback, because they are faults."}, {"name": "content_availability", "definition": "A question or complaint about what exists in the catalogue: when a season or episode will arrive, why only some seasons are carried, why a title was removed, a request to add a show, or availability in a country.", "boundary": "About whether Hulu carries the content at all. If the customer is asking which plan or add-on includes it, use plans_billing."}, {"name": "plans_billing", "definition": "Money and packaging: charges, unexpected or duplicate billing, refunds, plan and add-on contents, pricing, trials, promotional or student offers, and how to cancel.", "boundary": "Includes pre-sale questions from people who are not yet customers, such as which add-on carries a channel. A charge dispute always lands here even when the customer is also threatening to leave."}, {"name": "ads_experience", "definition": "Advertising specifically: ads appearing on an ad-free plan, the same advert repeating, ad load or frequency, or ad-blocker interaction.", "boundary": "Only when advertising is the subject. An ad break that breaks playback is playback_error."}, {"name": "product_feedback", "definition": "An opinion or feature request about a product that is working as designed: dislike of a redesign, a request for picture-in-picture, a wish for higher resolution, or a suggestion about autoplay.", "boundary": "Nothing is broken, so there is nothing to troubleshoot. If a specific function fails, it is app_device_problem instead."}, {"name": "service_outage", "definition": "The customer reports or asks about a broad current failure rather than a personal one: Hulu is down, nothing works on any device, or a live event failed for everyone.", "boundary": "Requires a claim of breadth, such as 'is Hulu down', 'not working on any device', or a named live event. A single device failing is playback_error."}, {"name": "unactionable_or_churn", "definition": "Dissatisfaction with no diagnosable detail, or a stated intention to cancel or a threat of escalation, where the message gives nothing to troubleshoot.", "boundary": "Use only when no more specific intent is recoverable. 'Buffering is horrid, I'm cancelling' has a diagnosable symptom, so it is playback_error. 'Hulu really sucks, I give up' does not."}, {"name": "other", "definition": "Not a support request: praise with no question, a mention that merely tags the brand, promotional or unrelated chatter.", "boundary": "Escape hatch. If a support need is recoverable at all, do not use this."}], REASONS = [{"name": "account_or_payment_specific", "why": "Resolving it needs the customer's account or payment records, so no public reply can be correct. Covers charge disputes, refunds and cancellations."}, {"name": "churn_or_legal_risk", "why": "The customer states they are leaving, or threatens legal or regulatory action. Retention and legal exposure are human decisions."}, {"name": "abuse_or_severe_distress", "why": "Sustained abuse or distress where a templated reply would inflame the thread."}, {"name": "accessibility_complaint", "why": "Accessibility regressions carry legal and reputational weight and deserve a written human response."}, {"name": "confirmed_broad_outage", "why": "Outage messaging must be centrally consistent, so the agent must not improvise status claims."}, {"name": "no_actionable_detail", "why": "Nothing in the message can be acted on, so the next move is human judgement about how to re-engage."}, {"name": "low_confidence_or_multi_intent", "why": "The classifier is unsure, or two intents with different handling are equally present. Ambiguity is routed to a person rather than guessed."}];
+const KEY = "golden_labels_v1";
+
+// Browsers refuse storage on file:// origins, so a page opened by double-click
+// would silently lose an hour of labelling. Detect that, keep going in memory,
+// and warn loudly instead of pretending the work is saved.
+let STORAGE_OK = true;
+function store(k, v){ try { localStorage.setItem(k, v); } catch(e){ STORAGE_OK = false; } }
+function load(k){ try { return localStorage.getItem(k); } catch(e){ STORAGE_OK = false; return null; } }
+let labels = JSON.parse(load(KEY) || "{}");
+let i = 0, stage = 1, sinceBackup = 0;
+
+function cur(){ return ITEMS[i]; }
+function rec(){ const k = cur().case_id; return labels[k] || (labels[k] = {case_id:k, idx:cur().idx}); }
+function save(){ persist(ITEMS.map(c=>({...(labels[c.case_id]||{case_id:c.case_id,idx:c.idx})})), 'spotcheck_labels.jsonl');
+  store(KEY, JSON.stringify(labels));
+  // Without storage the only safe place for the work is a file on disk, so
+  // auto-export every 20 labels rather than trusting the tab to stay open.
+  if(!STORAGE_OK && ++sinceBackup >= 20){ sinceBackup = 0; exportJSON(true); }
+}
+
+function renderCheat(){
+  document.getElementById("cheat").innerHTML = TAX.map((t,n)=>
+    `<div class="tax"><b><kbd>${(n+1)%10}</kbd> ${t.name}</b><div>${t.definition}</div>
+     <div class="bd">${t.boundary}</div></div>`).join("");
+}
+function render(){
+  const c = cur(), r = labels[c.case_id] || {};
+  document.querySelector("#bar>div").style.width = (100*Object.values(labels).filter(x=>x.intent&&x.handling).length/ITEMS.length)+"%";
+  document.getElementById("pos").textContent = `item ${i+1} / ${ITEMS.length}`;
+  const nDone = Object.values(labels).filter(x=>x.intent&&x.handling).length;
+  const goal = document.getElementById("goal");
+  if(goal){
+    goal.textContent = `${ITEMS.length-nDone} left`;
+  }
+  document.getElementById("cid").textContent = c.case_id;
+  document.getElementById("date").textContent = c.created_at;
+  const n = Object.values(labels).filter(x=>x.intent&&x.handling).length;
+  document.getElementById("done").textContent = `${n} complete`;
+  document.getElementById("peeked").textContent = r.peeked ? "peeked" : "";
+  document.getElementById("msg").textContent = c.customer_opening;
+  const rep = document.getElementById("reply");
+  rep.hidden = !r.peeked; rep.textContent = "Hulu actually replied: " + c.brand_first_reply;
+  document.getElementById("amb").textContent = r.ambiguous ? "flagged ambiguous" : "";
+  document.getElementById("nostore").hidden = STORAGE_OK;
+
+  document.getElementById("intents").innerHTML = TAX.map((t,n)=>
+    `<div class="opt ${r.intent===t.name?'sel':''}" onclick="pickIntent('${t.name}')">
+       <kbd>${(n+1)%10}</kbd><span>${t.name}</span></div>`).join("");
+  document.getElementById("handling").innerHTML =
+    `<div class="opt ${r.handling==='auto'?'sel':''}" onclick="pickHandling('auto')">
+       <kbd>a</kbd><span>auto-handle: a correct public reply exists with no account access</span></div>
+     <div class="opt ${r.handling==='escalate'?'sel':''}" onclick="pickHandling('escalate')">
+       <kbd>e</kbd><span>escalate to a human</span></div>`;
+  document.getElementById("reasons").innerHTML = REASONS.map((x,n)=>
+    `<div class="opt ${r.reason===x.name?'sel':''}" onclick="pickReason('${x.name}')">
+       <kbd>${n+1}</kbd><span>${x.name} &mdash; ${x.why}</span></div>`).join("");
+
+  document.getElementById("s2").className = "stage" + (stage>=2?" on":"");
+  document.getElementById("s3").className = "stage" + (stage>=3?" on":"");
+  window.scrollTo(0,0);
+}
+function pickIntent(name){ const r=rec(); r.intent=name; r.t_intent=Date.now(); stage=2; save(); render(); }
+function pickHandling(h){
+  const r=rec(); r.handling=h; r.t_handling=Date.now();
+  if(h==="auto"){ delete r.reason; stage=1; save(); next(); }
+  else { stage=3; save(); render(); }
+}
+function pickReason(name){ const r=rec(); r.reason=name; save(); stage=1; next(); }
+function reveal(){ const r=rec(); r.peeked=true; save(); render(); }
+function toggleAmb(){ const r=rec(); r.ambiguous=!r.ambiguous; save(); render(); }
+function next(){ if(i<ITEMS.length-1){ i++; stage=1; render(); } else { alert("End of set. Export when ready."); } }
+function prev(){ if(i>0){ i--; stage=1; render(); } }
+
+document.addEventListener("keydown", e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const k = e.key.toLowerCase();
+  if(k==="arrowright"){ next(); return; } if(k==="arrowleft"){ prev(); return; }
+  if(k==="r"){ reveal(); return; } if(k==="m"){ toggleAmb(); return; }
+  if(stage===3 && /^[1-7]$/.test(k)){ pickReason(REASONS[+k-1].name); return; }
+  if(stage===2){ if(k==="a"||k==="e"){ pickHandling(k==="a"?"auto":"escalate"); return; } }
+  if(stage===1 && /^[0-9]$/.test(k)){
+    const n = k==="0" ? 9 : +k-1;
+    if(TAX[n]) pickIntent(TAX[n].name);
+  }
+});
+
+// Persist to disk through the server after every change. localStorage is kept as
+// a second copy, but the file on disk is the one that matters and it is always
+// current, so an hour of work no longer depends on remembering to export.
+let saveTimer = null, lastSaved = 0;
+function persist(rows, filename){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    fetch("/save", {method:"POST", headers:{"Content-Type":"application/json"},
+                    body: JSON.stringify({file: filename, rows: rows})})
+      .then(r=>r.json())
+      .then(d=>{ lastSaved = d.complete;
+                 const el=document.getElementById("saved");
+                 if(el) el.textContent = `${d.complete} saved to disk`; })
+      .catch(()=>{ const el=document.getElementById("saved");
+                   if(el) el.textContent = "NOT SAVING - is label_server.py running?"; });
+  }, 400);
+}
+
+function exportJSON(auto){
+  if(!auto && lastSaved === 0 && !confirm('Nothing is labelled yet. Export an empty file anyway?')) return;
+  const rows = ITEMS.map(c=>({...(labels[c.case_id]||{case_id:c.case_id,idx:c.idx})}));
+  const blob = new Blob([rows.map(r=>JSON.stringify(r)).join("\n")], {type:"application/x-ndjson"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = auto ? "golden_labels_autosave.jsonl" : "golden_labels.jsonl";
+  a.click();
+}
+renderCheat(); render();
+</script></body></html>

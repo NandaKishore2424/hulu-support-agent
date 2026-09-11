@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1] / "data" / "golden"
 # Only these names may be written, so a page cannot talk the server into
 # overwriting source files.
-ALLOWED = {"golden_labels.jsonl", "reply_ratings.jsonl"}
+ALLOWED = {"golden_labels.jsonl", "reply_ratings.jsonl", "spotcheck_labels.jsonl"}
 PORT = 8777
 
 
@@ -62,7 +62,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def _is_complete(name: str, row: dict) -> bool:
-    if name == "golden_labels.jsonl":
+    if name in ("golden_labels.jsonl", "spotcheck_labels.jsonl"):
         return bool(row.get("intent")) and bool(row.get("handling"))
     return all(k in row for k in ("grounded", "actionable", "safe", "voice", "usable"))
 

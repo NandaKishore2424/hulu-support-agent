@@ -205,3 +205,31 @@ The cost is that fatigue now concentrates in the boost slice, so its per-class
 recall figures are the ones most likely to carry labelling noise. That is the
 right way round: it is better to have tired labels on the numbers used for
 diagnosis than on the numbers used for the headline.
+
+### 26. The evaluation set was machine-labelled after the human pass was abandoned
+The brief asks for 150 to 250 hand-labelled examples. The human pass stopped after
+one item, and the remaining 199 reference labels came from `gemini-3.1-flash-lite`
+via `scripts/13_machine_labels.py`.
+
+This is recorded as a decision rather than hidden because it changes what every
+classification number means. With the agent, the judge and now the reference all
+being language models, nothing in the pipeline has been checked by a person, and
+the headline 77.5% is agreement between two models rather than accuracy. Both
+sides also read the same taxonomy text, so a flaw in that text cannot surface as
+disagreement.
+
+Three constraints limit the damage. The labeller is a different model family from
+the agent and deliberately not the reply judge, so the agreement is at least
+between independent systems. It received the same instructions the human page
+displays, unsimplified. And it could flag ambiguity rather than guess, which it
+did on 15 of 200 items.
+
+Every machine label carries `"source": "machine"` and its model name in the data,
+the README says so above the first result, and the report's section 5 leads with
+it. A reviewer should be able to discover this without looking for it.
+
+### 27. Labels from the first labelling model were discarded, not mixed in
+`gemini-3.6-flash` labelled 12 items before exhausting its free-tier daily
+allowance. Those were deleted and the set relabelled from scratch with a single
+model. A reference standard assembled from two different models is not a standard.
+This is the same rule applied to the reply judge earlier, for the same reason.

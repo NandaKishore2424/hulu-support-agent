@@ -2,19 +2,19 @@
   "majority": {
     "intent": {
       "n": 120,
-      "accuracy": 0.075,
+      "accuracy": 0.20833333333333334,
       "ci": [
-        0.03333333333333333,
-        0.125
+        0.14166666666666666,
+        0.2833333333333333
       ],
-      "macro_f1": 0.013953488372093023
+      "macro_f1": 0.034482758620689655
     },
     "triage": {
       "n": 120,
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
-      "missed_escalations": 21,
+      "missed_escalations": 45,
       "over_escalations": 0,
       "missed_rate": 1.0,
       "over_rate": 0.0,
@@ -34,22 +34,22 @@
   "keyword_knn": {
     "intent": {
       "n": 120,
-      "accuracy": 1.0,
+      "accuracy": 0.4,
       "ci": [
-        1.0,
-        1.0
+        0.30833333333333335,
+        0.49166666666666664
       ],
-      "macro_f1": 1.0
+      "macro_f1": 0.3640765054658298
     },
     "triage": {
       "n": 120,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "missed_escalations": 0,
-      "over_escalations": 0,
-      "missed_rate": 0.0,
-      "over_rate": 0.0,
+      "precision": 0.6190476190476191,
+      "recall": 0.28888888888888886,
+      "f1": 0.3939393939393939,
+      "missed_escalations": 32,
+      "over_escalations": 8,
+      "missed_rate": 0.7111111111111111,
+      "over_rate": 0.10666666666666667,
       "automation_rate": 0.825
     },
     "quality": {
@@ -65,24 +65,24 @@
   },
   "agent": {
     "intent": {
-      "n": 91,
-      "accuracy": 0.42857142857142855,
+      "n": 120,
+      "accuracy": 0.775,
       "ci": [
-        0.31868131868131866,
-        0.5384615384615384
+        0.7,
+        0.85
       ],
-      "macro_f1": 0.336642623132878
+      "macro_f1": 0.7072438824493619
     },
     "triage": {
-      "n": 91,
-      "precision": 0.5882352941176471,
-      "recall": 0.5882352941176471,
-      "f1": 0.5882352941176471,
-      "missed_escalations": 7,
-      "over_escalations": 7,
-      "missed_rate": 0.4117647058823529,
-      "over_rate": 0.0945945945945946,
-      "automation_rate": 0.8131868131868132
+      "n": 120,
+      "precision": 0.7272727272727273,
+      "recall": 0.35555555555555557,
+      "f1": 0.4776119402985074,
+      "missed_escalations": 29,
+      "over_escalations": 6,
+      "missed_rate": 0.6444444444444445,
+      "over_rate": 0.08,
+      "automation_rate": 0.8166666666666667
     },
     "quality": {
       "n": 91,
@@ -92,7 +92,7 @@
       "voice": 4.406593406593407,
       "mean_quality": 4.236263736263736,
       "usable_rate": 0.8351648351648352,
-      "token_f1_vs_real_reply": 0.20988184071180108
+      "token_f1_vs_real_reply": 0.21114068365601088
     }
   }
 }

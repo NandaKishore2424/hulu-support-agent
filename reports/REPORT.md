@@ -77,9 +77,10 @@ In brief:
 Brand chosen by measured deflection rate. Threads rebuilt from the flat tweet
 dump and split chronologically at 2017-11-17 into 11,091 retrievable history
 cases and 3,697 held-out cases. Ten intents induced by reading the history split
-only. A golden set of 200 held-out cases hand-labelled through a UI that hides
-which sampling slice each item came from and hides Hulu's real reply behind a
-reveal key. One structured model call per case produces intent, confidence, a
+only. A golden set of 200 held-out cases sampled as 120 uniform-random plus 80
+keyword-probed, with reference labels from a third model rather than from a
+person; the labelling interface built for the human pass is in the repository and
+was used for one item before the pass was abandoned. One structured model call per case produces intent, confidence, a
 reply grounded in retrieved exemplars, and a proposed handling decision, after
 which policy code applies hard escalation rules that can override the model.
 Reply quality is scored by an LLM judge running on a different vendor's model,
@@ -188,10 +189,63 @@ larger run.
 
 ### Classification and triage
 
-Incomplete. Both depend on the hand-labelled golden set, and on the free-tier
-daily token ceiling described in section 5, which stopped the agent at 163 of 200
-golden items. `scripts/06_metrics.py` prints these tables in full once the labels
-are in place.
+**These are not accuracy figures. Read section 5 first.** The evaluation set was
+meant to be hand-labelled and was not; the reference labels come from
+`gemini-3.1-flash-lite`. Every number below measures agreement between the agent
+and another model, not correctness. The word accuracy is used only because it
+names the arithmetic.
+
+Headline row is the random slice, which is the only one that reflects real
+traffic. Intervals are 95% bootstrap.
+
+| system | n | agreement | 95% CI | macro F1 | escalation precision | escalation recall |
+|---|---:|---:|---:|---:|---:|---:|
+| majority class | 120 | 20.8% | 14.2–28.3 | 0.034 | 0.0% | 0.0% |
+| keyword + copy nearest | 120 | 40.0% | 30.8–49.2 | 0.364 | 61.9% | 28.9% |
+| **agent** | 120 | **77.5%** | 70.0–85.0 | **0.707** | 72.7% | 35.6% |
+
+**The agent clears both baselines on intent by a margin no amount of noise
+explains.** 77.5% against 40.0%, with intervals nowhere near touching, and macro
+F1 roughly doubled. Against the trivial floor it is more than three times better.
+Even allowing for the six-point run-to-run instability measured in section 5, this
+gap is real.
+
+**Escalation recall is the serious failure, at 35.6%.** Of the cases the
+reference says need a human, the agent auto-handles nearly two thirds. Set against
+the objective stated in section 1, never auto-send something that commits Hulu to
+what it cannot keep, that is the single worst result in the report and it would
+block deployment on its own.
+
+The per-class table explains the mechanism, and it is not the policy layer's
+fault:
+
+| intent | n | precision | recall | F1 |
+|---|---:|---:|---:|---:|
+| ads_experience | 17 | 100.0% | 100.0% | 1.000 |
+| login_access | 13 | 100.0% | 100.0% | 1.000 |
+| plans_billing | 20 | 90.5% | 95.0% | 0.927 |
+| content_availability | 42 | 79.6% | 92.9% | 0.857 |
+| playback_error | 44 | 84.6% | 75.0% | 0.795 |
+| product_feedback | 28 | 78.6% | 78.6% | 0.786 |
+| unactionable_or_churn | 8 | 50.0% | 75.0% | 0.600 |
+| other | 8 | 57.1% | 50.0% | 0.533 |
+| **service_outage** | 11 | 100.0% | **27.3%** | 0.429 |
+| app_device_problem | 9 | 36.4% | 44.4% | 0.400 |
+
+**Escalation fails because classification fails first.** The policy rules escalate
+`service_outage` unconditionally, so they can only fire when the classifier says
+`service_outage`, and it says so for 3 of 11 real cases. The top confusion in the
+whole set is `service_outage` misread as `playback_error`, which is precisely the
+boundary the taxonomy has a written rule for. When one customer says their stream
+froze and another says Hulu is down for everyone, the model hears the same
+complaint. Everything downstream inherits that.
+
+Note the shape of the two failing classes. `service_outage` has perfect precision
+and terrible recall: when the agent commits to calling something an outage it is
+right every time, it simply almost never commits. `app_device_problem` fails in
+both directions and is genuinely tangled with `product_feedback`, which is the
+other boundary the taxonomy tried to pin down and evidently did not pin down well
+enough.
 
 ## 4. Failure analysis
 
@@ -275,15 +329,46 @@ relabelling, and it is item 4 in section 6.
 
 This section is mandatory in the brief and it is the one I would read first.
 
-**I labelled my own evaluation set, alone.** There is no second annotator, so
-there is no inter-annotator agreement figure for intent. That matters more than
-it sounds: without it there is no estimate of the ceiling. If two careful people
-would only agree 85% of the time on these labels, then a classifier at 85% is at
-the ceiling and one at 92% is overfitting my personal reading of the taxonomy.
-Every intent accuracy in this report is accuracy against one person's judgement,
-and that person also designed the taxonomy and wrote the prompt that encodes it.
-The agent and the gold labels share an author. That is the single largest threat
-to validity here and no amount of bootstrapping fixes it.
+**The evaluation set is not hand-labelled, and this invalidates more than it
+first appears.** The brief asks for 150 to 250 examples labelled by hand. The
+human pass was started and abandoned after one item. The remaining 199 reference
+labels were produced by `gemini-3.1-flash-lite`.
+
+Three consequences, in order of severity.
+
+*There is no ground truth anywhere in this project.* The agent is a model, the
+reply judge is a model, and now the reference labels are a model. Nothing in the
+pipeline has been checked by a person. The 77.5% headline is agreement between
+two language models, and two models can agree confidently and both be wrong in the
+same direction with nothing here able to detect it. Calling that number accuracy
+is a convenience of arithmetic, not a claim about correctness.
+
+*The escalation numbers are worse affected than the intent numbers.* What counts
+as needing a human is a policy judgement, not a fact recoverable from the text.
+The reference labeller marked 41.5% of messages as needing escalation, which is
+high, and there is no way to tell whether that reflects the policy as written or
+the labeller being cautious. The agent's 35.6% escalation recall is measured
+against that, so the headline failure could be partly an artefact of a
+disagreement between two models about where the line sits.
+
+*The labeller read the same instructions the agent reads.* Both were given the
+taxonomy and boundary rules verbatim from `taxonomy.py`. A flaw in that text, and
+section 4 identifies at least one, cannot show up as disagreement, because both
+sides inherit it.
+
+What limits the damage, and it is limited rather than removed: the labeller is a
+different model family from the agent, and deliberately not the model used as the
+reply judge, so the agreement measured is at least between independent systems
+rather than a model checking itself. `scripts/14_make_spotcheck.py` builds a short
+human validation pass; it has not been completed, so there is no figure for how
+far these labels track a person's judgement.
+
+**The judge-versus-human agreement evidence the brief asks for does not exist.**
+The rating pass that would have produced it was not completed. The judge's rubric,
+its blindness to system identity and the discrimination probes in `judge.py` are
+all still in place, and the ablation and cross-system comparisons it produced are
+internally consistent, but there is no human anchor for any of it. This is a
+deliverable that is missing, not one that was attempted and came out weak.
 
 **The headline slice is 120 items.** The bootstrap intervals are reported for
 exactly this reason. On 120 items a 5-point difference in accuracy is usually
@@ -324,9 +409,10 @@ tier enforces a ceiling of 200,000 tokens per day that appears in no response
 header: the rate-limit headers report a healthy per-minute token bucket and 993
 remaining requests while the daily budget is finished, and the real limit surfaces
 only inside the body of a 429. One agent call costs roughly 2,400 tokens, so the
-allowance is about 83 calls a day, and it ran out with 37 golden items
-unmeasured. Those items are not a random subset, they are whatever remained in
-file order, so the missing 37 could differ systematically from the 163 scored.
+allowance is about 83 calls a day, so the 200 golden predictions had to be
+collected across three days in chunks as the budget refilled. All 200 completed in
+the end, but the run was interrupted repeatedly, and one of those interruptions
+caused the duplicate-prediction accident described below.
 
 **The ablation is on a different model from the agent.** The same wall meant the
 retrieval ablation could not run on gpt-oss-120b, so both of its arms run on
@@ -369,11 +455,13 @@ and not enough to certify a good one.
 In priority order, because the first item changes how every other number should
 be read.
 
-1. **A second annotator on 60 items.** This is the highest-value hour in the
-   whole project. It converts every accuracy figure from "agreement with me" into
-   "agreement with a labelling standard", and it establishes the ceiling that
-   tells me whether the agent has room to improve or is already at the limit of
-   the task definition.
+1. **Label the evaluation set by hand.** Nothing else on this list matters until
+   this is done. Every headline number is currently agreement between two models
+   and cannot be called accuracy. Two hours of human labelling would convert the
+   entire results section from suggestive to real, and the same pass would give
+   the judge-versus-human agreement figure the brief asks for and this submission
+   does not have. `scripts/14_make_spotcheck.py` builds a 30-item version that
+   would at least measure how far the machine labels track a person.
 2. **An outcome proxy.** Follow each held-out thread past the first brand reply.
    A customer who answers with thanks is weak evidence of resolution; one who
    restates the problem is weak evidence against. Noisy, but it would move reply

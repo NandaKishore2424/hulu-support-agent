@@ -8,3 +8,6 @@ data/raw/
 data/processed/*.jsonl
 !data/processed/*.jsonl.gz
 data/golden/golden_labels_SMOKE.jsonl
+
+# private study material, not part of the submission
+STUDY_NOTES.md
