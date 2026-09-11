@@ -187,13 +187,58 @@ Also worth noting: with exemplars available the model cited at least one on 100%
 of these cases, against the 15 ungrounded auto-answers in failure mode 4 on the
 larger run.
 
+### How far the reference labels track a person
+
+A 30-item spot check was labelled by hand, blind to what the machine had decided,
+drawn at random from the random slice. 29 were completed. This is the only
+measurement in the project of whether the reference labels mean anything.
+
+| comparison | agreement | Cohen's kappa |
+|---|---:|---:|
+| intent | 45% | +0.357 |
+| handling (auto vs escalate) | 79% | +0.563 |
+
+**The intent reference is weak, and this reframes the headline.** A human and the
+reference labeller pick the same intent on fewer than half of messages. The agent
+agrees with that reference 77.5% of the time, but agreeing closely with a
+reference that itself tracks human judgement 45% of the time does not establish
+that the agent is right. The correct reading of the headline is *the agent is
+highly consistent with one particular labeller*, and no stronger claim is
+available from this data.
+
+**The handling reference holds up far better.** 79% agreement and kappa 0.563 is
+moderate, and the escalate rates are close: the human escalated 34% of the sample,
+the machine 41%. So the triage findings, including the 35.6% escalation recall
+that the report calls its worst result, rest on firmer ground than the intent
+figures do.
+
+**Where the disagreement concentrates says something about the taxonomy, not just
+the labeller.** On the same 29 messages the human used `product_feedback` ten
+times; the machine used it five and spread the rest across `content_availability`,
+`playback_error` and `other`. That is one category absorbing a third of a human's
+labels while the machine scatters them, which points at a definition that does not
+draw a clear enough line between a complaint about how the product behaves and a
+report that something is broken. Section 4 already identified
+`app_device_problem` versus `product_feedback` as a weak boundary from the
+confusion matrix; this is independent evidence for the same conclusion from a
+completely different direction.
+
+**What this spot check cannot tell you.** With one rater on 29 items there is no
+way to establish which side is closer to correct. A 45% agreement is consistent
+with a poor reference labeller, with a rater applying the taxonomy loosely under
+time pressure, or with a taxonomy whose categories genuinely overlap. The third
+explanation is the most likely given where the disagreements fall, but the data
+here cannot separate them. The human flagged nothing as ambiguous, which given a
+45% disagreement rate suggests the ambiguity was not felt at labelling time even
+where it existed.
+
 ### Classification and triage
 
-**These are not accuracy figures. Read section 5 first.** The evaluation set was
-meant to be hand-labelled and was not; the reference labels come from
-`gemini-3.1-flash-lite`. Every number below measures agreement between the agent
-and another model, not correctness. The word accuracy is used only because it
-names the arithmetic.
+**These are not accuracy figures.** The reference labels come from
+`gemini-3.1-flash-lite`, and the spot check immediately above shows that
+reference agrees with a human on 45% of intents. Every intent number below
+measures agreement between the agent and that reference, nothing more. The
+handling numbers are on better footing, at 79% reference-to-human agreement.
 
 Headline row is the random slice, which is the only one that reflects real
 traffic. Intervals are 95% bootstrap.
@@ -329,10 +374,12 @@ relabelling, and it is item 4 in section 6.
 
 This section is mandatory in the brief and it is the one I would read first.
 
-**The evaluation set is not hand-labelled, and this invalidates more than it
-first appears.** The brief asks for 150 to 250 examples labelled by hand. The
-human pass was started and abandoned after one item. The remaining 199 reference
-labels were produced by `gemini-3.1-flash-lite`.
+**The evaluation set is machine-labelled, with human validation on a 30-item
+sample.** The brief asks for 150 to 250 examples labelled by hand. 199 reference
+labels were produced by `gemini-3.1-flash-lite` and 30 were then hand-labelled
+blind as a validation sample. That sample puts human-to-reference agreement at 45%
+on intent and 79% on handling, which is the number every intent figure in this
+report should be read against.
 
 Three consequences, in order of severity.
 
@@ -363,12 +410,11 @@ rather than a model checking itself. `scripts/14_make_spotcheck.py` builds a sho
 human validation pass; it has not been completed, so there is no figure for how
 far these labels track a person's judgement.
 
-**The judge-versus-human agreement evidence the brief asks for does not exist.**
-The rating pass that would have produced it was not completed. The judge's rubric,
-its blindness to system identity and the discrimination probes in `judge.py` are
-all still in place, and the ablation and cross-system comparisons it produced are
-internally consistent, but there is no human anchor for any of it. This is a
-deliverable that is missing, not one that was attempted and came out weak.
+**The judge-versus-human agreement evidence the brief asks for is still missing.**
+The spot check validates the *label* reference, not the *reply judge*. The rating
+pass that would have anchored the judge was not completed, so the reply-quality
+scores and the ablation, while internally consistent and blind to system identity,
+have no human anchor. That deliverable is absent rather than weak.
 
 **The headline slice is 120 items.** The bootstrap intervals are reported for
 exactly this reason. On 120 items a 5-point difference in accuracy is usually
@@ -455,13 +501,14 @@ and not enough to certify a good one.
 In priority order, because the first item changes how every other number should
 be read.
 
-1. **Label the evaluation set by hand.** Nothing else on this list matters until
-   this is done. Every headline number is currently agreement between two models
-   and cannot be called accuracy. Two hours of human labelling would convert the
-   entire results section from suggestive to real, and the same pass would give
-   the judge-versus-human agreement figure the brief asks for and this submission
-   does not have. `scripts/14_make_spotcheck.py` builds a 30-item version that
-   would at least measure how far the machine labels track a person.
+1. **Fix the taxonomy before labelling anything else.** The spot check puts
+   human-to-reference intent agreement at 45%, and the disagreements pile up on
+   one boundary: what counts as feedback about a working product versus a report
+   that something is broken. Relabelling 200 items against definitions that two
+   careful raters cannot apply consistently would just buy a more expensive
+   version of the same problem. Tighten `product_feedback`,
+   `app_device_problem` and `content_availability` against the 16 recorded
+   disagreements first, then hand-label the full set, then rerun everything.
 2. **An outcome proxy.** Follow each held-out thread past the first brand reply.
    A customer who answers with thanks is weak evidence of resolution; one who
    restates the problem is weak evidence against. Noisy, but it would move reply

@@ -1,0 +1,30 @@
+{"case_id": "hulu_support-486309", "idx": 129, "intent": "product_feedback", "t_intent": 1789144244494, "handling": "auto", "t_handling": 1789144248990}
+{"case_id": "hulu_support-175269", "idx": 24, "intent": "product_feedback", "t_intent": 1789144269103, "handling": "auto", "t_handling": 1789144273135}
+{"case_id": "hulu_support-2740542", "idx": 140, "intent": "product_feedback", "t_intent": 1789144279712, "handling": "auto", "t_handling": 1789144282144}
+{"case_id": "hulu_support-2948756", "idx": 159, "intent": "plans_billing", "t_intent": 1789144290112, "handling": "escalate", "t_handling": 1789144291056, "reason": "account_or_payment_specific"}
+{"case_id": "hulu_support-1402622", "idx": 189, "intent": "content_availability", "t_intent": 1789144304497, "handling": "auto", "t_handling": 1789144306184}
+{"case_id": "hulu_support-1719481", "idx": 63, "intent": "product_feedback", "t_intent": 1789144320049, "handling": "auto", "t_handling": 1789144331513}
+{"case_id": "hulu_support-1253967", "idx": 50, "intent": "content_availability", "t_intent": 1789144334825, "handling": "auto", "t_handling": 1789144336041}
+{"case_id": "hulu_support-465663", "idx": 117, "intent": "app_device_problem", "t_intent": 1789144341826, "handling": "escalate", "t_handling": 1789144344043, "reason": "churn_or_legal_risk"}
+{"case_id": "hulu_support-2647541", "idx": 46, "intent": "login_access", "t_intent": 1789144363227, "handling": "escalate", "t_handling": 1789144365138, "reason": "accessibility_complaint"}
+{"case_id": "hulu_support-2978997", "idx": 0, "intent": "content_availability", "t_intent": 1789144373475, "handling": "auto", "t_handling": 1789144374771}
+{"case_id": "hulu_support-569997", "idx": 27, "intent": "product_feedback", "t_intent": 1789144383764, "handling": "auto", "t_handling": 1789144384900}
+{"case_id": "hulu_support-591332", "idx": 77, "intent": "playback_error", "t_intent": 1789144394716, "handling": "escalate", "t_handling": 1789144396741, "reason": "confirmed_broad_outage"}
+{"case_id": "hulu_support-2967910", "idx": 116, "intent": "product_feedback", "t_intent": 1789144488591, "handling": "auto", "t_handling": 1789144490447}
+{"case_id": "hulu_support-2598257", "idx": 69, "intent": "service_outage", "t_intent": 1789144496568, "handling": "escalate", "t_handling": 1789144497784, "reason": "no_actionable_detail"}
+{"case_id": "hulu_support-2735979", "idx": 195, "intent": "product_feedback", "t_intent": 1789144512921, "handling": "auto", "t_handling": 1789144513857}
+{"case_id": "hulu_support-587998", "idx": 113, "intent": "unactionable_or_churn", "t_intent": 1789144524225, "handling": "escalate", "t_handling": 1789144525521, "reason": "churn_or_legal_risk"}
+{"case_id": "hulu_support-2982117", "idx": 109, "intent": "playback_error", "t_intent": 1789144530962, "handling": "auto", "t_handling": 1789144532354}
+{"case_id": "hulu_support-2816444", "idx": 41, "intent": "product_feedback", "t_intent": 1789144539290, "handling": "auto", "t_handling": 1789144540323}
+{"case_id": "hulu_support-525135", "idx": 196, "intent": "playback_error", "t_intent": 1789144549275, "handling": "auto", "t_handling": 1789144551707}
+{"case_id": "hulu_support-120996", "idx": 42, "intent": "unactionable_or_churn", "t_intent": 1789144558435, "handling": "escalate", "t_handling": 1789144559723, "reason": "accessibility_complaint"}
+{"case_id": "hulu_support-570950", "idx": 98, "intent": "ads_experience", "t_intent": 1789144570844, "handling": "auto", "t_handling": 1789144572084}
+{"case_id": "hulu_support-565582", "idx": 142, "intent": "playback_error", "t_intent": 1789144576972, "handling": "auto", "t_handling": 1789144577908}
+{"case_id": "hulu_support-566846", "idx": 82, "intent": "content_availability", "t_intent": 1789144582532, "handling": "auto", "t_handling": 1789144583404}
+{"case_id": "hulu_support-2707794", "idx": 3, "intent": "product_feedback", "t_intent": 1789144586389, "handling": "auto", "t_handling": 1789144586933}
+{"case_id": "hulu_support-565531", "idx": 182, "intent": "app_device_problem", "t_intent": 1789144588860, "handling": "auto", "t_handling": 1789144590132}
+{"case_id": "hulu_support-2657227", "idx": 151, "intent": "product_feedback", "t_intent": 1789144594013, "handling": "auto", "t_handling": 1789144594661}
+{"case_id": "hulu_support-2805764", "idx": 6, "intent": "plans_billing", "t_intent": 1789144599749, "handling": "escalate", "t_handling": 1789144600933, "reason": "account_or_payment_specific"}
+{"case_id": "hulu_support-2792509", "idx": 29, "intent": "plans_billing", "t_intent": 1789144606804, "handling": "escalate", "t_handling": 1789144608165, "reason": "account_or_payment_specific"}
+{"case_id": "hulu_support-450329", "idx": 120, "intent": "content_availability", "t_intent": 1789144614862, "handling": "auto", "t_handling": 1789144616157}
+{"case_id": "hulu_support-1370052", "idx": 22, "intent": "plans_billing", "t_intent": 1789144621317, "handling": "escalate", "t_handling": 1789144622271, "reason": "account_or_payment_specific"}

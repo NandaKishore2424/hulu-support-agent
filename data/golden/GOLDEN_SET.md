@@ -100,12 +100,24 @@ a person is a policy judgement rather than something recoverable from the text.
 The reference marked 41.5% of messages for escalation, which is high, and there is
 no way to tell whether that is the policy or the labeller being cautious.
 
-**No ceiling estimate exists.** With no human labels there is no inter-annotator
-agreement figure, so there is no way to know how much of the agent's 22.5%
-disagreement is genuine error and how much is irreducible ambiguity in the task.
+**The validation sample says the intent reference is weak.** 30 items were
+hand-labelled blind and compared against the machine reference: 45% agreement on
+intent, kappa 0.357; 79% on handling, kappa 0.563. So intent figures computed
+against this set measure consistency with one labeller, not correctness. Handling
+figures are on better footing.
 
-`scripts/14_make_spotcheck.py` builds a 30-item human validation pass that would
-measure how far these machine labels track a person. It has not been run.
+**The disagreements are not random.** On those 29 items the human used
+`product_feedback` ten times where the machine used it five, spreading the rest
+across `content_availability`, `playback_error` and `other`. One category
+absorbing a third of a human's labels while the machine scatters them points at a
+definition problem rather than simple noise, and it corroborates the weak
+`app_device_problem` / `product_feedback` boundary already visible in the
+confusion matrix.
+
+**One rater cannot settle who is right.** 45% agreement is equally consistent with
+a poor reference, a rater applying the taxonomy loosely, or genuinely overlapping
+categories. The evidence points at the third, but this sample cannot separate
+them.
 
 ## What is still sound
 

@@ -233,3 +233,25 @@ it. A reviewer should be able to discover this without looking for it.
 allowance. Those were deleted and the set relabelled from scratch with a single
 model. A reference standard assembled from two different models is not a standard.
 This is the same rule applied to the reply judge earlier, for the same reason.
+
+### 28. The reference labels were validated rather than assumed, and they failed
+30 items were hand-labelled blind and compared against the machine reference.
+Intent agreement came out at 45%, kappa 0.357. Handling agreement at 79%, kappa
+0.563.
+
+Running this check was optional and it made the headline look considerably worse:
+the agent's 77.5% is agreement with a reference that tracks human judgement on
+fewer than half of intents, so it cannot be read as accuracy. Reporting it anyway
+is the entire point. A 77.5% presented without this number would have been the
+most misleading figure in the project, and the check that exposed it took ten
+minutes.
+
+The disagreements cluster rather than scatter. `product_feedback` took ten of a
+human's 29 labels against the machine's five, with the difference spread over
+`content_availability`, `playback_error` and `other`. That is evidence about the
+taxonomy, not only about the labeller, and it independently corroborates a weak
+boundary already visible in the confusion matrix. It also changes the top priority
+for the next iteration: tightening those definitions has to come before any
+further labelling, because relabelling against definitions two careful raters
+cannot apply consistently would only buy a more expensive version of the same
+problem.
