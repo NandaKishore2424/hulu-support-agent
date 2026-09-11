@@ -155,7 +155,7 @@ scripts/         numbered pipeline stages, each runnable alone
 data/golden/     the evaluation set, its labels, and the labelling interfaces
 reports/         predictions, judgements, metrics, and the written report
 cache/llm/       every model response, keyed by prompt hash
-tests/           22 tests over the parts where a silent bug corrupts results
+tests/           41 tests, including degenerate inputs a 3M-row scrape produces
 ```
 
 ## Models and the limits that shaped the code

@@ -162,3 +162,73 @@ def test_quota_exhausted_propagates_instead_of_failing_over():
     finally:
         llm._call_groq = original
     assert len(calls) == 1, "should not have tried the fallback model"
+
+
+# ---------------------------------------------------------------- edge cases
+# Degenerate inputs that a 3M-row scrape produces in quantity: tweets that are
+# nothing but a mention, threads the brand never answered, queries with no
+# vocabulary in common with anything. Each of these silently corrupts a number
+# rather than raising, so they are pinned here.
+
+@pytest.mark.parametrize("text", ["", "@someone", "😀😀😀", "a" * 10000,
+                                  "مرحبا @user https://t.co/x ^JB"])
+def test_normalisation_survives_degenerate_text(text):
+    assert isinstance(normalize_text(text), str)
+
+
+def test_thread_with_no_brand_reply_yields_no_case():
+    df = _frame([dict(tweet_id=1, author_id="123", inbound=True, created_at="a",
+                      text="hi", in_response_to_tweet_id=None)])
+    assert to_cases(build_threads(df), brand="hulu_support") == []
+
+
+def test_empty_dataframe_yields_no_threads():
+    df = _frame([]) if False else pd.DataFrame(
+        columns=["tweet_id", "author_id", "inbound", "created_at", "text",
+                 "in_response_to_tweet_id"])
+    assert build_threads(df) == []
+
+
+@pytest.mark.parametrize("confidence", [5.0, -1.0, 0.0, 1.0])
+def test_policy_tolerates_confidence_outside_zero_to_one(confidence):
+    handling, _, _ = apply_policy("playback_error", confidence, "auto", None)
+    assert handling in ("auto", "escalate")
+
+
+def test_policy_does_not_pass_through_an_invented_reason():
+    """A model that hallucinates a reason must not have it reach the output."""
+    from agent.taxonomy import ESCALATION_REASONS
+    _, reason, _ = apply_policy("playback_error", 0.9, "escalate", "nonsense")
+    assert reason in ESCALATION_REASONS
+
+
+def test_unknown_intent_does_not_crash_the_policy():
+    handling, _, _ = apply_policy("not_a_real_intent", 0.9, "auto", None)
+    assert handling in ("auto", "escalate")
+
+
+def test_metrics_handle_empty_and_single_item_inputs():
+    assert macro_f1([], []) == 0.0
+    assert triage([], []).n == 0
+    assert bootstrap_ci([]) == (0.0, 0.0)
+    lo, hi = bootstrap_ci([1.0])
+    assert lo == hi == 1.0
+
+
+def test_token_f1_on_empty_and_punctuation_only_strings():
+    assert token_f1("", "") == 0.0
+    assert token_f1("!!!", "???") == 0.0
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ('```json\n{"a":1}\n```', {"a": 1}),
+    ('Here you go: {"a":1} hope that helps', {"a": 1}),
+    ('{"a":1}', {"a": 1}),
+])
+def test_model_json_is_recovered_from_fences_and_prose(raw, expected):
+    from agent.llm import parse_json
+    assert parse_json(raw) == expected
+
+
+def test_keyword_baseline_falls_back_on_an_empty_message():
+    assert keyword_intent("") == "other"
