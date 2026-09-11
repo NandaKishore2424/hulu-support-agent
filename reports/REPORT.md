@@ -65,78 +65,84 @@ in `reports/DECISION_LOG.md`.
 
 ## 3. Results
 
-### How far the reference labels track a person
-
-The reference labels are machine-generated. 30 items were then hand-labelled blind
-as validation. This is the only measurement of whether the reference means
-anything, and it should be read before anything else.
-
-| comparison | agreement | Cohen's kappa |
-|---|---:|---:|
-| intent | 45% | +0.357 |
-| handling (auto vs escalate) | 79% | +0.563 |
-
-**The intent reference is weak.** A human and the reference labeller pick the same
-intent on fewer than half of messages, so agreeing closely with that reference does
-not establish correctness. The handling reference holds up better: 79%, with
-escalate rates of 34% human against 41% machine, so the triage findings rest on
-firmer ground than the intent figures.
-
-**The disagreements cluster rather than scatter.** On those 29 items the human used
-`product_feedback` ten times where the machine used it five, spreading the
-difference across `content_availability`, `playback_error` and `other`. One
-category absorbing a third of a human's labels points at a definition problem, and
-it independently corroborates a weak boundary already visible in the confusion
-matrix below.
-
-With one rater on 29 items there is no way to establish which side is closer to
-correct. 45% is equally consistent with a poor reference, a rater applying the
-taxonomy loosely, or genuinely overlapping categories.
+All 200 evaluation items are hand-labelled by me. Headline numbers use the
+120-item uniform-random slice only, since the boost slice does not reflect real
+traffic. Intervals are 95% bootstrap.
 
 ### Intent and triage
 
-Random slice only, since the boost slice does not reflect real traffic. Intervals
-are 95% bootstrap.
-
-| system | n | agreement | 95% CI | macro F1 | esc. precision | esc. recall |
+| system | n | accuracy | 95% CI | macro F1 | esc. precision | esc. recall |
 |---|---:|---:|---:|---:|---:|---:|
-| majority class | 120 | 20.8% | 14.2–28.3 | 0.034 | 0.0% | 0.0% |
-| keyword + copy nearest | 120 | 40.0% | 30.8–49.2 | 0.364 | 61.9% | 28.9% |
-| **agent** | 120 | **77.5%** | 70.0–85.0 | **0.707** | 72.7% | 35.6% |
+| majority class | 120 | 11.7% | 5.8–17.5 | 0.021 | 0.0% | 0.0% |
+| keyword + copy nearest | 120 | 29.2% | 20.8–37.5 | 0.235 | 28.6% | 35.3% |
+| **agent** | 120 | **49.2%** | 40.8–58.3 | **0.404** | 27.3% | 35.3% |
 
-**The agent clears both baselines by a margin no noise explains**, with intervals
-nowhere near touching and macro F1 roughly doubled against the simple baseline.
-Read as consistency with one labeller, not accuracy.
+**The agent beats both baselines and the intervals do not overlap**, 49.2%
+against 29.2% against 11.7%, with macro F1 roughly doubled against the simple
+baseline. That ordering is solid.
 
-**Escalation recall of 35.6% is the worst result here.** The agent auto-handles
-nearly two thirds of what should reach a human, against an objective that puts
-safety first. The per-class table shows why, and it is not the policy layer's
-fault.
+**49.2% is a modest absolute result and should not be dressed up.** On a ten-class
+problem it is well above chance and well above a keyword system, and it is still
+wrong on half of real traffic.
+
+**Escalation is poor in both directions.** Of the 22 cases the agent sent to a
+human, 6 needed it. Of the 17 that needed a human, it caught 6. It both
+over-escalates, 16 cases, and misses, 11 cases, which is the worst combination:
+it wastes agent time without buying safety.
 
 | intent | n | precision | recall | F1 |
 |---|---:|---:|---:|---:|
-| ads_experience | 17 | 100.0% | 100.0% | 1.000 |
-| login_access | 13 | 100.0% | 100.0% | 1.000 |
-| plans_billing | 20 | 90.5% | 95.0% | 0.927 |
-| content_availability | 42 | 79.6% | 92.9% | 0.857 |
-| playback_error | 44 | 84.6% | 75.0% | 0.795 |
-| product_feedback | 28 | 78.6% | 78.6% | 0.786 |
-| unactionable_or_churn | 8 | 50.0% | 75.0% | 0.600 |
-| other | 8 | 57.1% | 50.0% | 0.533 |
-| **service_outage** | 11 | 100.0% | **27.3%** | 0.429 |
-| app_device_problem | 9 | 36.4% | 44.4% | 0.400 |
+| plans_billing | 29 | 81.0% | 58.6% | 0.680 |
+| login_access | 11 | 53.8% | 63.6% | 0.583 |
+| content_availability | 40 | 51.0% | 62.5% | 0.562 |
+| product_feedback | 31 | 50.0% | 45.2% | 0.475 |
+| ads_experience | 11 | 35.3% | 54.5% | 0.429 |
+| playback_error | 18 | 28.2% | 61.1% | 0.386 |
+| unactionable_or_churn | 18 | 33.3% | 22.2% | 0.267 |
+| service_outage | 14 | 66.7% | 14.3% | 0.235 |
+| app_device_problem | 27 | 27.3% | 11.1% | 0.158 |
 
-**Triage fails because classification fails first.** Policy escalates
-`service_outage` unconditionally, so it can only fire when the classifier says
-`service_outage`, and it says so for 3 of 11 cases. The commonest confusion in the
-set is an outage read as an ordinary playback error, precisely the boundary the
-taxonomy wrote a rule for. `service_outage` has perfect precision and terrible
-recall: when the agent commits, it is right; it almost never commits.
+**`playback_error` is a sink.** 28.2% precision against 61.1% recall means the
+agent reaches for it constantly and is usually wrong. The two commonest confusions
+in the whole set are `app_device_problem` read as `playback_error`, 7 cases, and
+`service_outage` read as `playback_error`, 7 cases. Both are boundaries the
+taxonomy wrote explicit rules for, and both rules failed.
+
+**`service_outage` has the same shape as before:** decent precision, 66.7%,
+terrible recall, 14.3%. The agent rarely commits to calling something an outage,
+so the policy rule that escalates outages almost never fires.
+
+### The headline my own evaluation nearly reported
+
+Before hand-labelling, the reference labels were machine-generated by
+`gemini-3.1-flash-lite`. Scored against that reference the agent looked far
+better:
+
+| reference used | agent intent accuracy |
+|---|---:|
+| machine-generated labels | **79.9%** |
+| hand labels | **44.2%** |
+
+The same predictions, the same 199 items, a 35.7-point difference purely from who
+wrote the reference. The machine reference agrees with me on intent 44.7% of the
+time, kappa 0.372, and on handling 65.3%, kappa 0.201. It escalated 41.2% of
+messages where I escalated 12.6%.
+
+**The mechanism is shared bias, and it is measurable.** On 80 of 199 items, 40%,
+the agent and the machine reference made *the same* error relative to my label.
+They agree on calling an outage a playback error, on calling a device problem a
+playback error, on calling feedback a catalogue question. Two models built on
+similar data make correlated mistakes, so scoring one against the other rewards
+exactly the errors they share.
+
+Had I not hand-labelled, this report would have led with 77.5% and a claim that
+the agent nearly doubles the simple baseline. The real figure is 49.2%. That gap
+is the single most useful thing I learned here.
 
 ### Reply quality
 
 Scored blind by `gemini-3.5-flash-lite` against retrieved history, so these
-numbers do not depend on the labels above.
+numbers never touch the labels above.
 
 | system | grounded | actionable | safe | voice | mean | postable |
 |---|---:|---:|---:|---:|---:|---:|
@@ -145,15 +151,17 @@ numbers do not depend on the labels above.
 | **agent** | **3.92** | 3.62 | **4.98** | **4.40** | **4.23** | 84.0% |
 
 **The agent is not measurably more actionable than a one-line template**, 3.62
-against 3.80 with overlapping intervals. The template asks what device you are
-using, which is useful on almost any support message.
+against 3.80 with overlapping intervals.
 
 **Copying real human replies produces mostly unpostable text**, 28% postable,
 despite the second-best voice score, because a reply written for another customer
 carries their name and their link.
 
-**Overlap with Hulu's real reply ranks the copy baseline first**, which is the
-predicted failure of that metric and why it is reported only to be discounted.
+**Overlap with Hulu's real reply ranks the copy baseline first**, the predicted
+failure of that metric and why it is reported only to be discounted.
+
+These scores carry their own caveat: the judge has never been checked against a
+human, so they establish relative ordering between systems and nothing absolute.
 
 ### What retrieval contributes
 
@@ -170,11 +178,10 @@ not.
 | postable | 0.66 | 0.86 | **−0.20** | −0.37 to −0.03 | 2 / 9 |
 
 Groundedness and voice are where retrieval pays, 27 wins to 0 on both. It does
-**not** make replies more actionable, agreeing with the cross-system table, so two
-independent measurements say the same thing. And it makes replies measurably
-**less postable**, because grounding in real history is also how the `<URL>`
-placeholder gets copied in. The two arms agree on intent 89% of the time, so
-retrieval informs the answer rather than the label.
+**not** make replies more actionable, agreeing with the cross-system table. And it
+makes replies measurably **less postable**, because grounding in real history is
+also how the `<URL>` placeholder gets copied in. The two arms agree on intent 89%
+of the time, so retrieval informs the answer rather than the label.
 
 ## 4. Failure analysis
 
@@ -232,23 +239,34 @@ the intent would invalidate a golden set labelled against the current taxonomy.
 
 ## 5. What is misleading about my headline number
 
-**The intent headline does not survive its own validation.** The agent agrees with
-the reference 77.5% of the time; the reference agrees with a human 45% of the time.
-High agreement with a weak reference is not evidence of correctness. This was only
-discoverable because the spot check was run; without it the 77.5% would have looked
-like a result. The handling figures, at 79% reference-to-human agreement, are on
-much better footing, which means the report's worst finding is also its most
-trustworthy one.
+**49.2% is accuracy against one annotator, and that annotator designed the
+taxonomy.** I wrote the label definitions, then applied them. Where a category is
+badly drawn, my labels inherit the same flaw as the agent's prompt, and a shared
+misreading cannot appear as disagreement. There is no second annotator, so there
+is no inter-annotator agreement figure and therefore no estimate of the ceiling.
+If two careful people would agree only 70% of the time on this taxonomy, then
+49.2% sits much closer to the achievable limit than it looks; if they would agree
+95%, it does not. I cannot tell you which, and that is the largest single gap in
+this evaluation.
 
-**The set is not hand-labelled as the brief asks.** 199 of 200 reference labels are
-machine-generated; 30 were hand-labelled as a validation sample. Both the labeller
-and the agent read the same taxonomy text, so a flaw in that text, and section 4
-identifies one, cannot surface as disagreement.
+**Circumstantial evidence says the taxonomy is the problem, not only the model.**
+The two commonest confusions are `app_device_problem` and `service_outage` both
+collapsing into `playback_error`, and both are boundaries I wrote explicit rules
+for. `app_device_problem` scores F1 0.158 against 27 real examples. When a
+category with a written rule and adequate support fails that badly, the more
+likely explanation is that the category does not carve the data at a real joint.
 
-**No judge-versus-human evidence exists.** The reply-rating pass was not completed.
-The judge's rubric, vendor independence and blindness to system identity are all in
-place, and its discrimination probes behave correctly, but nothing anchors it to a
-person. That deliverable is absent rather than weak.
+**The escalation labels encode a policy I invented.** I decided billing disputes
+need a human and that a churn threat outranks the underlying issue. Hulu may well
+handle both automatically in DMs. The triage numbers measure consistency with a
+stated policy, not agreement with Hulu's real one.
+
+**No judge-versus-human evidence exists.** The reply-rating pass was not
+completed. The judge's rubric, vendor independence and blindness to system
+identity are all in place, and its discrimination probes behave correctly, but
+nothing anchors it to a person. Every reply-quality number establishes relative
+ordering between systems and nothing absolute. This is a deliverable that is
+missing, not one that came out weak.
 
 **No outcome data, so "quality" means plausibility.** Nothing in this dataset says
 whether a reply fixed the problem. A reply can score 5 across the rubric and solve
@@ -263,35 +281,47 @@ overlapped and regenerated 31 cases, giving accidental repeat samples.
 | intent label | 94% |
 | reply wording | 29% |
 
-So an intent gap under about six points is inside the noise, on top of the sampling
-intervals. And the escalation decision never moved, which is the strongest evidence
-here for putting that decision in policy code rather than in the prompt.
+So an intent gap under about six points is inside the noise, on top of the
+sampling intervals. The escalation decision never moved, which is the strongest
+evidence here for putting that decision in policy code rather than in the prompt.
 
 **The chronological split does not fully prevent leakage.** It stops retrieval
-seeing the future, but the same complaints recur for months, so a held-out case may
-have a near-identical predecessor. Realistic, since a deployed system would have
-the same advantage, but it flatters groundedness relative to novel problems.
+seeing the future, but the same complaints recur for months, so a held-out case
+may have a near-identical predecessor. Realistic, since a deployed system would
+have the same advantage, but it flatters groundedness relative to novel problems.
 
-**120 items, and accuracy dominated by one class.** Read macro F1 when comparing
-systems and the per-class table when asking whether a specific intent works.
+**120 items, and one class carries a fifth of the mass.** Read macro F1 when
+comparing systems and the per-class table when asking whether a specific intent
+works. `other` has a single example and its F1 of 0.000 means nothing.
+
+**What is no longer misleading, and why it is worth saying.** An earlier draft of
+this report reported 77.5%, measured against machine-generated reference labels.
+That figure was wrong by 28 points, not because of a bug but because the reference
+and the system under test shared their errors on 40% of items. The correction came
+from hand-labelling, which is the one step that cannot be automated away. If there
+is a single transferable lesson here, it is that an evaluation set produced by a
+model related to the system being evaluated will flatter it, quietly, and by a
+margin large enough to change every conclusion.
 
 ## 6. What I would do with one more week
 
-1. **Fix the taxonomy before labelling anything else.** Human-to-reference
-   agreement is 45% and the disagreements pile on one boundary: feedback about a
-   working product versus a report that something is broken. Relabelling against
-   definitions two careful raters cannot apply consistently buys a more expensive
-   version of the same problem. Tighten `product_feedback`, `app_device_problem`
-   and `content_availability` against the 16 recorded disagreements, then
-   hand-label the full set, then rerun everything.
-2. **Escalate on empty `grounded_in`.** Two lines in `apply_policy`, and it closes
+1. **Rework the taxonomy, then relabel.** `app_device_problem` scores F1 0.158
+   and `service_outage` 0.235, and both fail by collapsing into `playback_error`
+   despite having written boundary rules. I would merge or redraw those three
+   categories against the confusion matrix, then relabel. Chasing model accuracy
+   against categories that do not carve the data is wasted effort.
+2. **Get a second annotator on 60 items.** Without an inter-annotator figure
+   there is no way to know whether 49.2% is near the ceiling or far from it, and
+   that single number changes how every other result should be read.
+3. **Escalate on empty `grounded_in`.** Two lines in `apply_policy`, and it closes
    failure mode 4, the one where the agent answers confidently with no precedent.
-3. **Build an outcome proxy.** Follow each held-out thread past the first reply. A
+4. **Build an outcome proxy.** Follow each held-out thread past the first reply. A
    customer who thanks is weak evidence of resolution; one who restates the problem
    is weak evidence against. Noisy, but it moves reply evaluation from plausibility
    toward effect.
-4. **Evaluate retrieval on its own.** Right now a retrieval failure and a
+5. **Rate 40 replies by hand** to anchor the judge, which is the missing
+   deliverable, then **evaluate retrieval on its own.** Right now a retrieval failure and a
    generation failure are indistinguishable from the outside. Hand-labelled
    relevance for 50 queries would give recall@k.
-5. **Fix the placeholder leak at source**, resolving `<URL>` to the real Hulu help
+6. **Fix the placeholder leak at source**, resolving `<URL>` to the real Hulu help
    links present in the raw data, so grounded replies carry a link that works.

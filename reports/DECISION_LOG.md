@@ -92,12 +92,18 @@ deterministic here: intent agrees 94% across reruns, replies 29%, handling 100%.
 Deduplication then keeps the first occurrence in file order, a rule independent of
 which copy scores better so it cannot be used to select favourable results.
 
-**15. The reference labels were validated rather than assumed, and they failed.**
-The hand-labelling pass the brief asks for was not completed; 199 of 200 reference
-labels came from `gemini-3.1-flash-lite`. Thirty items were then hand-labelled
-blind as validation, giving 45% intent agreement (kappa 0.357) and 79% on handling
-(kappa 0.563). Running that check was optional and it made the headline look
-considerably worse, since agreeing with a weak reference proves little. Reporting
-it anyway is the point. The disagreements cluster on one taxonomy boundary rather
-than scattering, which is evidence about the definitions rather than only about the
-labeller, and it sets the top priority for any next iteration.
+**15. The set was hand-labelled in the end, and the machine labels were kept as
+evidence.** An earlier version used 199 reference labels from
+`gemini-3.1-flash-lite`. All 200 were then labelled by hand, and the machine
+labels were archived rather than deleted.
+
+That turned out to be the most valuable decision in the project. The two
+references agree on intent 44.7% of the time. Scored against the machine
+reference the agent gets 79.9%; against hand labels, on identical predictions, it
+gets 44.2%. The mechanism is measurable rather than speculative: on 80 of 199
+items the agent and the machine reference made the same error relative to the
+human. Two models built on similar data make correlated mistakes, so scoring one
+against the other rewards precisely the errors they share.
+
+Reporting both numbers costs the headline 28 points. It is also the only part of
+this evaluation that generalises beyond this dataset.

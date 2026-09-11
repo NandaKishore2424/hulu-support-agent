@@ -2,19 +2,19 @@
   "majority": {
     "intent": {
       "n": 120,
-      "accuracy": 0.20833333333333334,
+      "accuracy": 0.11666666666666667,
       "ci": [
-        0.14166666666666666,
-        0.2833333333333333
+        0.058333333333333334,
+        0.175
       ],
-      "macro_f1": 0.034482758620689655
+      "macro_f1": 0.020895522388059702
     },
     "triage": {
       "n": 120,
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
-      "missed_escalations": 45,
+      "missed_escalations": 17,
       "over_escalations": 0,
       "missed_rate": 1.0,
       "over_rate": 0.0,
@@ -34,22 +34,22 @@
   "keyword_knn": {
     "intent": {
       "n": 120,
-      "accuracy": 0.4,
+      "accuracy": 0.2916666666666667,
       "ci": [
-        0.30833333333333335,
-        0.49166666666666664
+        0.20833333333333334,
+        0.375
       ],
-      "macro_f1": 0.3640765054658298
+      "macro_f1": 0.23470871707003643
     },
     "triage": {
       "n": 120,
-      "precision": 0.6190476190476191,
-      "recall": 0.28888888888888886,
-      "f1": 0.3939393939393939,
-      "missed_escalations": 32,
-      "over_escalations": 8,
-      "missed_rate": 0.7111111111111111,
-      "over_rate": 0.10666666666666667,
+      "precision": 0.2857142857142857,
+      "recall": 0.35294117647058826,
+      "f1": 0.31578947368421056,
+      "missed_escalations": 11,
+      "over_escalations": 15,
+      "missed_rate": 0.6470588235294118,
+      "over_rate": 0.14563106796116504,
       "automation_rate": 0.825
     },
     "quality": {
@@ -66,22 +66,22 @@
   "agent": {
     "intent": {
       "n": 120,
-      "accuracy": 0.775,
+      "accuracy": 0.49166666666666664,
       "ci": [
-        0.7,
-        0.85
+        0.4083333333333333,
+        0.5833333333333334
       ],
-      "macro_f1": 0.7072438824493619
+      "macro_f1": 0.40384568996509296
     },
     "triage": {
       "n": 120,
-      "precision": 0.7272727272727273,
-      "recall": 0.35555555555555557,
-      "f1": 0.4776119402985074,
-      "missed_escalations": 29,
-      "over_escalations": 6,
-      "missed_rate": 0.6444444444444445,
-      "over_rate": 0.08,
+      "precision": 0.2727272727272727,
+      "recall": 0.35294117647058826,
+      "f1": 0.30769230769230765,
+      "missed_escalations": 11,
+      "over_escalations": 16,
+      "missed_rate": 0.6470588235294118,
+      "over_rate": 0.1553398058252427,
       "automation_rate": 0.8166666666666667
     },
     "quality": {
