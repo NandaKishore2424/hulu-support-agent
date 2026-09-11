@@ -37,7 +37,7 @@ JUDGE_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_golden(brand: str) -> list[dict]:
     path = C.GOLDEN_DIR / f"golden_unlabelled_{brand}.jsonl"
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
 def predict(brand: str, live: bool, only: list[str] | None,
@@ -67,7 +67,7 @@ def predict(brand: str, live: bool, only: list[str] | None,
         out_path = PRED_DIR / f"{name}.jsonl"
         done = set()
         if out_path.exists():
-            done = {json.loads(l)["case_id"] for l in out_path.read_text().splitlines()}
+            done = {json.loads(line)["case_id"] for line in out_path.read_text().splitlines()}
         todo = [c for c in subset if c["case_id"] not in done]
         if limit:
             todo = todo[:limit]
@@ -120,7 +120,7 @@ def judge(brand: str, live: bool, judge_n: int, only: list[str] | None,
         out_path = JUDGE_DIR / f"{name}.jsonl"
         done = set()
         if out_path.exists():
-            done = {json.loads(l)["case_id"] for l in out_path.read_text().splitlines()}
+            done = {json.loads(line)["case_id"] for line in out_path.read_text().splitlines()}
         todo = [cid for cid in subset if cid in preds and cid not in done]
         if limit:
             todo = todo[:limit]

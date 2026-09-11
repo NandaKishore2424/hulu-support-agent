@@ -14,7 +14,8 @@ import statistics as stats
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                                    # noqa: E402
 from agent.evaluate import (bootstrap_ci, accuracy, macro_f1,    # noqa: E402
                             per_class, token_f1, top_confusions, triage)
@@ -28,7 +29,7 @@ SYSTEM_ORDER = ["majority", "keyword_knn", "no_retrieval", "agent"]
 def read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def load_gold(brand: str, labels_file: str) -> dict[str, dict]:
@@ -112,7 +113,7 @@ def main() -> None:
             ht = [gset[c]["handling"] for c in ids]
             hp = [preds[c]["handling"] for c in ids]
             acc = accuracy(yt, yp)
-            lo, hi = bootstrap_ci([1.0 if a == b else 0.0 for a, b in zip(yt, yp)])
+            lo, hi = bootstrap_ci([1.0 if a == b else 0.0 for a, b in zip(yt, yp, strict=True)])
             t = triage(ht, hp)
             print(f"{name:14s} {slice_name:7s} {len(ids):4d} {fmt_pct(acc)} "
                   f"[{fmt_pct(lo)},{fmt_pct(hi)}] {macro_f1(yt, yp):8.3f} "

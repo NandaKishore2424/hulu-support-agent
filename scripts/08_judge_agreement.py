@@ -25,7 +25,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                                       # noqa: E402
 from agent.evaluate import (cohen_kappa, exact_and_adjacent,        # noqa: E402
                             quadratic_weighted_kappa)
@@ -37,7 +38,7 @@ JUDGE_DIR = C.REPORT_DIR / "judgements"
 def read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def main() -> None:
@@ -94,7 +95,7 @@ def main() -> None:
 
     hu = [int(p[0]["usable"]) for p in pairs]
     ju = [int(p[1]["usable"]) for p in pairs]
-    agree = sum(1 for a, b in zip(hu, ju) if a == b) / len(hu)
+    agree = sum(1 for a, b in zip(hu, ju, strict=True) if a == b) / len(hu)
     kap = cohen_kappa(hu, ju)
     print(f"{'usable':12s} {agree:7.2f} {'-':>8s} {kap:7.3f} "
           f"{stats.mean(hu):7.2f} {stats.mean(ju):7.2f} {stats.mean(ju)-stats.mean(hu):12.2f}")

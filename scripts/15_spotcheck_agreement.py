@@ -16,7 +16,8 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                      # noqa: E402
 from agent.evaluate import cohen_kappa             # noqa: E402
 
@@ -24,7 +25,7 @@ from agent.evaluate import cohen_kappa             # noqa: E402
 def read(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def main() -> None:
@@ -41,8 +42,8 @@ def main() -> None:
     mi = [machine[c]["intent"] for c in shared]
     hh = [human[c]["handling"] for c in shared]
     mh = [machine[c]["handling"] for c in shared]
-    agree_i = sum(1 for a, b in zip(hi, mi) if a == b) / len(shared)
-    agree_h = sum(1 for a, b in zip(hh, mh) if a == b) / len(shared)
+    agree_i = sum(1 for a, b in zip(hi, mi, strict=True) if a == b) / len(shared)
+    agree_h = sum(1 for a, b in zip(hh, mh, strict=True) if a == b) / len(shared)
 
     print(f"spot check on {len(shared)} items\n")
     print(f"  intent   agreement {agree_i:.0%}   kappa {cohen_kappa(hi, mi):+.3f}")

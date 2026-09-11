@@ -24,14 +24,15 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                       # noqa: E402
 
 PRED_DIR = C.REPORT_DIR / "predictions"
 
 
 def read_jsonl(path: Path) -> list[dict]:
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def variance_report(rows: list[dict]) -> dict | None:

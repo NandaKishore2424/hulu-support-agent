@@ -50,7 +50,7 @@ INTENTS: tuple[Intent, ...] = (
                   "after a crash is login_access; a crash with no login prompt is "
                   "app_device_problem."),
         examples=(
-            "why am I suddenly unable to log onto Hulu on my Roku? Email and password no longer saved",
+"why am I suddenly unable to log onto Hulu on my Roku? Email and password no longer saved",
             "I'm logged in the wrong account on PS4 and there is no log out button",
         ),
     ),

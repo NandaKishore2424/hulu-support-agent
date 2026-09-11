@@ -19,7 +19,8 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                      # noqa: E402
 
 OUT = C.GOLDEN_DIR / "golden_labels_SMOKE.jsonl"
@@ -29,7 +30,7 @@ def main() -> None:
     src = C.REPORT_DIR / "predictions" / "keyword_knn.jsonl"
     if not src.exists():
         sys.exit("run scripts/05_run_systems.py --stage predict first")
-    rows = [json.loads(l) for l in src.read_text(encoding="utf-8").splitlines() if l.strip()]
+    rows = [json.loads(line) for line in src.read_text(encoding="utf-8").splitlines() if line.strip()]
     with OUT.open("w", encoding="utf-8") as fh:
         for r in rows:
             fh.write(json.dumps({

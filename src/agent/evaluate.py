@@ -59,9 +59,9 @@ def per_class(y_true: list[str], y_pred: list[str]) -> list[ClassMetrics]:
     labels = sorted(set(y_true) | set(y_pred))
     out = []
     for lab in labels:
-        tp = sum(1 for t, p in zip(y_true, y_pred) if t == lab and p == lab)
-        fp = sum(1 for t, p in zip(y_true, y_pred) if t != lab and p == lab)
-        fn = sum(1 for t, p in zip(y_true, y_pred) if t == lab and p != lab)
+        tp = sum(1 for t, p in zip(y_true, y_pred, strict=True) if t == lab and p == lab)
+        fp = sum(1 for t, p in zip(y_true, y_pred, strict=True) if t != lab and p == lab)
+        fn = sum(1 for t, p in zip(y_true, y_pred, strict=True) if t == lab and p != lab)
         prec = tp / (tp + fp) if tp + fp else 0.0
         rec = tp / (tp + fn) if tp + fn else 0.0
         f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
@@ -72,7 +72,7 @@ def per_class(y_true: list[str], y_pred: list[str]) -> list[ClassMetrics]:
 def accuracy(y_true: list[str], y_pred: list[str]) -> float:
     if not y_true:
         return 0.0
-    return sum(1 for t, p in zip(y_true, y_pred) if t == p) / len(y_true)
+    return sum(1 for t, p in zip(y_true, y_pred, strict=True) if t == p) / len(y_true)
 
 
 def macro_f1(y_true: list[str], y_pred: list[str]) -> float:
@@ -88,7 +88,7 @@ def macro_f1(y_true: list[str], y_pred: list[str]) -> float:
 
 
 def confusion(y_true: list[str], y_pred: list[str]) -> dict[tuple[str, str], int]:
-    return dict(Counter(zip(y_true, y_pred)))
+    return dict(Counter(zip(y_true, y_pred, strict=True)))
 
 
 def top_confusions(y_true: list[str], y_pred: list[str], k: int = 8) -> list[tuple[str, str, int]]:
@@ -111,9 +111,9 @@ class TriageMetrics:
 
 
 def triage(y_true: list[str], y_pred: list[str]) -> TriageMetrics:
-    tp = sum(1 for t, p in zip(y_true, y_pred) if t == "escalate" and p == "escalate")
-    fp = sum(1 for t, p in zip(y_true, y_pred) if t == "auto" and p == "escalate")
-    fn = sum(1 for t, p in zip(y_true, y_pred) if t == "escalate" and p == "auto")
+    tp = sum(1 for t, p in zip(y_true, y_pred, strict=True) if t == "escalate" and p == "escalate")
+    fp = sum(1 for t, p in zip(y_true, y_pred, strict=True) if t == "auto" and p == "escalate")
+    fn = sum(1 for t, p in zip(y_true, y_pred, strict=True) if t == "escalate" and p == "auto")
     n = len(y_true)
     prec = tp / (tp + fp) if tp + fp else 0.0
     rec = tp / (tp + fn) if tp + fn else 0.0
@@ -153,7 +153,7 @@ def cohen_kappa(a: list, b: list) -> float:
     if not a:
         return 0.0
     n = len(a)
-    observed = sum(1 for x, y in zip(a, b) if x == y) / n
+    observed = sum(1 for x, y in zip(a, b, strict=True) if x == y) / n
     ca, cb = Counter(a), Counter(b)
     expected = sum((ca[k] / n) * (cb[k] / n) for k in set(a) | set(b))
     if expected >= 1.0:
@@ -173,7 +173,7 @@ def quadratic_weighted_kappa(a: list[int], b: list[int], lo: int = 1, hi: int = 
     idx = {v: i for i, v in enumerate(labels)}
     k = len(labels)
     obs = [[0] * k for _ in range(k)]
-    for x, y in zip(a, b):
+    for x, y in zip(a, b, strict=True):
         obs[idx[x]][idx[y]] += 1
     n = len(a)
     ha = [sum(row) for row in obs]
@@ -191,6 +191,6 @@ def exact_and_adjacent(a: list[int], b: list[int]) -> tuple[float, float]:
     """Share of items where two raters agree exactly, and within one point."""
     if not a:
         return (0.0, 0.0)
-    exact = sum(1 for x, y in zip(a, b) if x == y) / len(a)
-    adj = sum(1 for x, y in zip(a, b) if abs(x - y) <= 1) / len(a)
+    exact = sum(1 for x, y in zip(a, b, strict=True) if x == y) / len(a)
+    adj = sum(1 for x, y in zip(a, b, strict=True) if abs(x - y) <= 1) / len(a)
     return exact, adj

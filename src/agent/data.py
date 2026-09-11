@@ -196,7 +196,8 @@ def add_root_ids(df: pd.DataFrame) -> pd.DataFrame:
     brand afterwards is a cheap filter rather than a graph walk per brand.
     """
     parent: dict[int, int] = {}
-    for tid, pid in zip(df["tweet_id"].to_numpy(), df["in_response_to_tweet_id"].to_numpy()):
+    for tid, pid in zip(df["tweet_id"].to_numpy(),
+                        df["in_response_to_tweet_id"].to_numpy(), strict=True):
         if pd.notna(pid):
             parent[int(tid)] = int(pid)
 

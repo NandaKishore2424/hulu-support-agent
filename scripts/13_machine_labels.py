@@ -44,7 +44,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                                   # noqa: E402
 from agent.llm import USAGE, QuotaExhausted, complete, parse_json  # noqa: E402
 from agent.taxonomy import (ESCALATION_REASONS, INTENT_NAMES,   # noqa: E402
@@ -111,7 +112,7 @@ def main() -> None:
     args = ap.parse_args()
 
     src = C.GOLDEN_DIR / f"golden_unlabelled_{args.brand}.jsonl"
-    items = [json.loads(l) for l in src.read_text(encoding="utf-8").splitlines() if l.strip()]
+    items = [json.loads(line) for line in src.read_text(encoding="utf-8").splitlines() if line.strip()]
     out = C.GOLDEN_DIR / "golden_labels.jsonl"
 
     done: dict[str, dict] = {}

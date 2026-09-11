@@ -28,7 +28,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C                                        # noqa: E402
 from agent.agent import SYSTEM, apply_policy, build_prompt           # noqa: E402
 from agent.data import load_cases                                    # noqa: E402
@@ -45,7 +46,7 @@ ARMS = {"ablation_with_retrieval": True, "ablation_no_retrieval": False}
 def read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def run_one(case: dict, index: ExemplarIndex, use_retrieval: bool,
@@ -140,7 +141,7 @@ def main() -> None:
     ap.add_argument("--live", action="store_true")
     args = ap.parse_args()
 
-    golden = [json.loads(l) for l in
+    golden = [json.loads(line) for line in
               (C.GOLDEN_DIR / f"golden_unlabelled_{args.brand}.jsonl").read_text().splitlines()]
     items = [g for g in golden if g["slice"] == "random"][:args.n]
     index = ExemplarIndex(load_cases(C.PROC_DIR / f"history_{args.brand}.jsonl"))

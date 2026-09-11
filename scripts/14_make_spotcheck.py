@@ -42,7 +42,7 @@ def main() -> None:
     html = label_page.read_text(encoding="utf-8")
 
     items = json.loads(re.search(r"const ITEMS = (\[.*?\]), TAX", html, re.S).group(1))
-    golden = {json.loads(l)["case_id"]: json.loads(l) for l in
+    golden = {json.loads(line)["case_id"]: json.loads(line) for line in
               (C.GOLDEN_DIR / f"golden_unlabelled_{args.brand}.jsonl")
               .read_text(encoding="utf-8").splitlines()}
 

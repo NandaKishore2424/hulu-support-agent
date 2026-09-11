@@ -7,7 +7,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 
 from agent.baselines import keyword_intent
 from agent.data import add_root_ids, build_threads, collapse_turns, normalize_text, to_cases
@@ -25,9 +26,12 @@ def _frame(rows):
 
 
 THREAD = [
-    dict(tweet_id=1, author_id="123", inbound=True, created_at="a", text="app broken", in_response_to_tweet_id=None),
-    dict(tweet_id=2, author_id="123", inbound=True, created_at="b", text="on roku", in_response_to_tweet_id=1),
-    dict(tweet_id=3, author_id="hulu_support", inbound=False, created_at="c", text="try rebooting ^JB", in_response_to_tweet_id=2),
+    dict(tweet_id=1, author_id="123", inbound=True, created_at="a",
+         text="app broken", in_response_to_tweet_id=None),
+    dict(tweet_id=2, author_id="123", inbound=True, created_at="b",
+         text="on roku", in_response_to_tweet_id=1),
+    dict(tweet_id=3, author_id="hulu_support", inbound=False, created_at="c",
+         text="try rebooting ^JB", in_response_to_tweet_id=2),
 ]
 
 

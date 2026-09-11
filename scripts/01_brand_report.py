@@ -23,7 +23,8 @@ from pathlib import Path
 
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(SRC))
 from agent import config as C          # noqa: E402
 from agent.data import load_raw        # noqa: E402
 
