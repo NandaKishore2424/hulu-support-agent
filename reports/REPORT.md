@@ -102,11 +102,11 @@ to which system wrote each reply. Ranges are bootstrap 95% half-widths.
 |---|---:|---:|---:|---:|---:|---:|---:|
 | majority template | 2.56 ±0.35 | 3.80 ±0.21 | 4.92 ±0.10 | 3.34 ±0.28 | 3.65 | 90.0% | 0.179 |
 | keyword + copy nearest | 3.20 ±0.40 | 3.24 ±0.31 | 4.72 ±0.22 | 4.36 ±0.23 | 3.88 | 28.0% | 0.223 |
-| **agent** | **3.90 ±0.31** | 3.66 ±0.32 | **4.98 ±0.03** | **4.41 ±0.20** | **4.24** | 83.5% | 0.210 |
+| **agent** | **3.92 ±0.30** | 3.62 ±0.31 | **4.98 ±0.03** | **4.40 ±0.19** | **4.23** | 84.0% | 0.211 |
 
 Four things to take from it, including two that do not flatter the agent.
 
-**Retrieval works, and groundedness is where it shows.** The agent scores 3.90 on
+**Retrieval works, and groundedness is where it shows.** The agent scores 3.92 on
 groundedness against 3.20 for a system that copies a real Hulu reply verbatim and
 2.56 for a fixed template. Those intervals do not overlap, so this is a real
 difference rather than noise. This is the one claim in the report I would defend
@@ -119,7 +119,7 @@ behaviour, because the judge is checking for promises in the text and cannot kno
 whether a troubleshooting step is actually correct.
 
 **The agent is not measurably more actionable than a hand-written generic
-template.** 3.66 ±0.32 against 3.80 ±0.21. The template asks "what device are you
+template.** 3.62 ±0.31 against 3.80 ±0.21. The template asks "what device are you
 using?", which is a genuinely useful question on almost any support message. A
 reader who only saw the mean quality column would conclude the agent is
 comprehensively better; on the dimension that decides whether the customer's

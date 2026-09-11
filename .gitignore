@@ -11,3 +11,8 @@ data/golden/golden_labels_SMOKE.jsonl
 
 # private study material, not part of the submission
 STUDY_NOTES.md
+
+# run logs
+*.log
+reports/*.log
+.DS_Store

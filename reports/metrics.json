@@ -85,14 +85,14 @@
       "automation_rate": 0.8166666666666667
     },
     "quality": {
-      "n": 91,
-      "grounded": 3.901098901098901,
-      "actionable": 3.659340659340659,
-      "safe": 4.978021978021978,
-      "voice": 4.406593406593407,
-      "mean_quality": 4.236263736263736,
-      "usable_rate": 0.8351648351648352,
-      "token_f1_vs_real_reply": 0.21114068365601088
+      "n": 100,
+      "grounded": 3.92,
+      "actionable": 3.62,
+      "safe": 4.98,
+      "voice": 4.4,
+      "mean_quality": 4.23,
+      "usable_rate": 0.84,
+      "token_f1_vs_real_reply": 0.2108729136096848
     }
   }
 }

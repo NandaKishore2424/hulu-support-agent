@@ -22,7 +22,11 @@ data:
 	$(VENV)/python scripts/02_build_cases.py --brand $(BRAND)
 	$(VENV)/python scripts/03_sample_golden.py --brand $(BRAND)
 
-reproduce: metrics agreement
+reproduce: metrics
+	@echo ""
+	@echo "judge-versus-human agreement: not available, the human rating pass"
+	@echo "was not completed. See README and report section 5."
+
 
 predict:
 	$(VENV)/python scripts/05_run_systems.py --stage predict --live
