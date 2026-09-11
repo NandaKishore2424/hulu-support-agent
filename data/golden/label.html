@@ -180,5 +180,39 @@ function exportJSON(auto){
   a.download = auto ? "golden_labels_autosave.jsonl" : "golden_labels.jsonl";
   a.click();
 }
-renderCheat(); render();
+// Load whatever is already on disk before rendering. The file is the source of
+// truth, not localStorage: storage is per-browser and can be empty after a
+// refresh in a new window, and the page sends its whole set on every save, so a
+// page that started from an empty store would wipe existing work on the first
+// keystroke. Merging disk state in first makes that impossible and also means
+// progress survives a cleared browser.
+async function bootstrap(){
+  try {
+    const res = await fetch("golden_labels.jsonl", {cache: "no-store"});
+    if(res.ok){
+      const text = await res.text();
+      let restored = 0;
+      for(const line of text.split("\n")){
+        if(!line.trim()) continue;
+        let row; try { row = JSON.parse(line); } catch(e) { continue; }
+        if(row.case_id && row.intent && row.handling){
+          labels[row.case_id] = Object.assign({}, row);
+          restored++;
+        }
+      }
+      if(restored){
+        store(KEY, JSON.stringify(labels));
+        lastSaved = restored;
+        const el = document.getElementById("saved");
+        if(el) el.textContent = `${restored} loaded from disk`;
+      }
+      // Resume at the first unlabelled item rather than at the top.
+      const firstTodo = ITEMS.findIndex(c => !(labels[c.case_id] &&
+                        labels[c.case_id].intent && labels[c.case_id].handling));
+      if(firstTodo > 0) i = firstTodo;
+    }
+  } catch(e) { /* offline or served without the file; localStorage still applies */ }
+  renderCheat(); render();
+}
+bootstrap();
 </script></body></html>
