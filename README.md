@@ -191,8 +191,8 @@ took sustained throughput from one call a minute to over five.
 - [`reports/REPORT.md`](reports/REPORT.md) — framing, results, the five failure
   modes with real examples, what is misleading about the headline number, and what
   another week would buy.
-- [`reports/DECISION_LOG.md`](reports/DECISION_LOG.md) — 27 non-obvious decisions
-  and the reasoning behind each.
+- [`reports/DECISION_LOG.md`](reports/DECISION_LOG.md) — the 15 non-obvious
+  decisions and the reasoning behind each.
 - [`data/golden/GOLDEN_SET.md`](data/golden/GOLDEN_SET.md) — how the evaluation set
   was sampled and labelled, and what is wrong with it.
 
